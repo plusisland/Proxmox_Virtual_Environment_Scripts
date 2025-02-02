@@ -203,8 +203,8 @@ function default_settings() {
   VLAN=""
   MAC=$GEN_MAC
   LAN_MAC=$GEN_MAC_LAN
-  LAN_BRG="vmbr0"
-  LAN_IP_ADDR="192.168.1.1"
+  LAN_BRG="vmbr1"
+  LAN_IP_ADDR="192.168.2.1"
   LAN_NETMASK="255.255.255.0"
   LAN_VLAN=",tag=999"
   MTU=""
