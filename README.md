@@ -6,3 +6,7 @@ bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/-Proxmox/ref
 ```
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/-Proxmox/refs/heads/main/PCI_Passthrough.sh)"
 ```
+3.OpenWrt建立
+```
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/-Proxmox/refs/heads/main/OpenWrt.sh)"
+```
