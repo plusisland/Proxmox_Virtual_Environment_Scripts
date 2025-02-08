@@ -1,3 +1,7 @@
+0.修改軟體源
+```
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/-Proxmox/refs/heads/main/Post-Pve-Install.sh)"
+```
 1.修改顯示狀態
 ```
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/-Proxmox/refs/heads/main/Proxmox_VE_Change_Status.sh)"
