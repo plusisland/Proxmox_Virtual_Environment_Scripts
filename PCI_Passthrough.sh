@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # https://hackmd.io/@davidho9713/pve_pci_passthrough
 # https://pve.proxmox.com/wiki/PCI(e)_Passthrough
