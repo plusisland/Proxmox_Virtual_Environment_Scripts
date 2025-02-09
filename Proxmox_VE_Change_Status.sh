@@ -905,12 +905,14 @@ sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/
 # 移除PVE企業訂閱源
 truncate -s 0 /etc/apt/sources.list.d/pve-enterprise.list
 truncate -s 0 /etc/apt/sources.list.d/ceph.list
-#添加非訂閱源
+
+# 添加非訂閱源
 echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" >> /etc/apt/sources.list
 echo "deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription" >> /etc/apt/sources.list.d/ceph.list
 echo "deb http://download.proxmox.com/debian/ceph-reef bookworm no-subscription" >> /etc/apt/sources.list.d/ceph.list
 echo "deb http://download.proxmox.com/debian/ceph-squid bookworm no-subscription" >> /etc/apt/sources.list.d/ceph.list
-#更新套件庫
+
+# 更新套件庫
 apt update
 
 echo -e "嘗試解決PVE下部分PCIe設備不顯示名稱的問題......"
