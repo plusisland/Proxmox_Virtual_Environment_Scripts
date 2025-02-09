@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 # https://pve.proxmox.com/wiki/PCI(e)_Passthrough
-# https://pve.proxmox.com/wiki/PCI_Passthrough
-# https://hackmd.io/@davidho9713/pve_pci_passthrough
 
 # 設定直通模式
 if ! dmesg | grep -q "DMAR: IOMMU enabled"; then
