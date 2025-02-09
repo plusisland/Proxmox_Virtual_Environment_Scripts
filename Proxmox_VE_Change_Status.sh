@@ -925,7 +925,5 @@ fi
 echo -e "嘗試解決PVE下部分PCIe設備不顯示名稱的問題......"
 update-pciids
 
-echo -e "添加 PVE 硬件概要訊息完成，正在重啟 pveproxy 服務 ......"
+echo -e "添加 PVE 硬件概要訊息完成，正在重啟 pveproxy 服務 ......服務重啟完成，請使用 Shift + F5 手動刷新 PVE Web 頁面。"
 systemctl restart pveproxy
-
-echo -e "pveproxy 服務重啟完成，請使用 Shift + F5 手動刷新 PVE Web 頁面。"
