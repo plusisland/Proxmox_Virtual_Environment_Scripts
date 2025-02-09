@@ -1,59 +1,59 @@
 #!/usr/bin/env bash
-
-# https://hackmd.io/@davidho9713/pve_pci_passthrough
 # https://pve.proxmox.com/wiki/PCI(e)_Passthrough
 # https://pve.proxmox.com/wiki/PCI_Passthrough
+# https://hackmd.io/@davidho9713/pve_pci_passthrough
 
-# 獲取 CPU 型號
-cpu_vendor=$(lscpu | grep "Vendor ID" | awk '{print $3}')
+# 設定直通模式
+if ! dmesg | grep -q "DMAR: IOMMU enabled"; then
+  if grep -q "iommu=pt" /etc/kernel/cmdline; then
+    echo "檔案 /etc/kernel/cmdline 已經包含 iommu=pt，無需修改。"
+  else
+    echo "新 CPU 都已預設啟用 IOMMU，只設定增進效能..."
+    search="root=ZFS=rpool\/ROOT\/pve-1 boot=zfs"
+    replace="root=ZFS=rpool\/ROOT\/pve-1 boot=zfs iommu=pt"
+    if ! sed -i "s/$search/$replace/g" /etc/kernel/cmdline; then
+      echo "修改 /etc/kernel/cmdline 失敗！"
+      exit 1
+    fi
+    echo "檔案 /etc/kernel/cmdline 已成功修改。"
+    echo "正在更新開機核心參數..."
+    proxmox-boot-tool refresh
+  fi
+else
+  echo "IOMMU 已啟用，無需修改 /etc/kernel/cmdline。"
+fi
 
-# 判斷 CPU 型號並設置相應的參數
-cpu_platform="$(lscpu | grep 'Model name' | grep -E 'Intel|AMD')"
-case $cpu_platform in
-    *Intel*)
-    # 如果是 Intel CPU
-          CPU="Intel"
-          echo "偵測到本平台為 Intel 平台,正在修改IOMMU參數..."
-          sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"/' /etc/default/grub
-          sed -i 's/root=ZFS=rpool\/ROOT\/pve-1 boot=zfs/root=ZFS=rpool\/ROOT\/pve-1 boot=zfs intel_iommu=on iommu=pt/' /etc/kernel/cmdline
-          ;;
-    *AMD*)
-     # 如果是 AMD CPU
-          CPU="AMD"
-          echo "偵測到本平台為 AMD 平台,正在修改IOMMU參數..."   
-          sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT="quiet amd_iommu=on iommu=pt"/' /etc/default/grub
-          sed -i 's/root=ZFS=rpool\/ROOT\/pve-1 boot=zfs/root=ZFS=rpool\/ROOT\/pve-1 boot=zfs amd_iommu=on iommu=pt/' /etc/kernel/cmdline
-          ;;
-    *)
-          echo -e "抱歉,暫不支持當前CPU平台!"
-          ;;
-esac
+# 修改核心模組
+modules=("vfio" "vfio_iommu_type1" "vfio_pci")
+for module in "${modules[@]}"; do
+  if ! grep -q "$module" /etc/modules; then
+    echo "$module" >> /etc/modules
+    echo "模組 $module 已新增到 /etc/modules。"
+  else
+    echo "模組 $module 已存在於 /etc/modules 中，無需重複添加。"
+  fi
+done
 
-# 更新 grub
-echo "正在更新 GRUB 核心參數..."
-proxmox-boot-tool refresh
-
-# 加載核心模塊
-echo "正在加載核心模塊..."
-echo "vfio" >> /etc/modules
-echo "vfio_iommu_type1" >> /etc/modules
-echo "vfio_pci" >> /etc/modules
-
-echo "blacklist amdgpu" >> /etc/modprobe.d/blacklist.conf
-echo "blacklist radeon" >> /etc/modprobe.d/blacklist.conf
-
-echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf 
-echo "blacklist nvidia*" >> /etc/modprobe.d/blacklist.conf 
-
-echo "blacklist i915" >> /etc/modprobe.d/blacklist.conf
-
-echo "blacklist mt7921e" >> /etc/modprobe.d/blacklist.conf
+# 增加裝置黑名單
+blacklist_modules=("amdgpu" "radeon" "nouveau" "nvidia*" "i915" "mt7921e")
+if ! grep -q "blacklist " /etc/modprobe.d/blacklist.conf; then
+  echo "${blacklist_modules[@]}" | sed 's/ /\nblacklist /g' | sed '$s/$/\n/' >> /etc/modprobe.d/blacklist.conf
+  echo "模組已加入黑名單。"
+else
+  for module in "${blacklist_modules[@]}"; do
+    if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
+      echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
+      echo "裝置 $module 已加入黑名單。"
+    else
+      echo "裝置 $module 已在黑名單中，無需重複添加。"
+    fi
+  done
+fi
 
 # 更新核心參數
 echo "正在更新核心參數..."
 update-initramfs -u -k all
 
-echo "腳本運行完成，已成功開啟硬件直通功能."
-
-echo "正在執行重啟...請等待1-3分鐘..."
+echo "命令執行完成，已成功開啟硬體直通功能。系統將在 3 秒後重新啟動..."
+sleep 3
 reboot
