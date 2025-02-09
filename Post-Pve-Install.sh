@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-
-# Copyright (c) 2021-2025 tteck
-# Author: tteck (tteckster)
-# License: MIT
-# https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
+# https://pve.proxmox.com/wiki/Package_Repositories
 
 header_info() {
   clear
@@ -47,25 +43,6 @@ msg_error() {
 start_routines() {
   header_info
 
-  CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SOURCES" --menu "The package manager will use the correct sources to update and install packages on your Proxmox VE server.\n \nCorrect Proxmox VE sources?" 14 58 2 \
-    "yes" " " \
-    "no" " " 3>&2 2>&1 1>&3)
-  case $CHOICE in
-  yes)
-    msg_info "Correcting Proxmox VE Sources"
-    cat <<EOF >/etc/apt/sources.list
-deb http://ftp.tw.debian.org/debian bookworm main contrib
-deb http://ftp.tw.debian.org/debian bookworm-updates main contrib
-deb http://security.debian.org/debian-security bookworm-security main contrib
-EOF
-echo 'APT::Get::Update::SourceListWarnings::NonFreeFirmware "false";' >/etc/apt/apt.conf.d/no-bookworm-firmware.conf
-    msg_ok "Corrected Proxmox VE Sources"
-    ;;
-  no)
-    msg_error "Selected no to Correcting Proxmox VE Sources"
-    ;;
-  esac
-
   CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "PVE-ENTERPRISE" --menu "The 'pve-enterprise' repository is only available to users who have purchased a Proxmox VE subscription.\n \nDisable 'pve-enterprise' repository?" 14 58 2 \
     "yes" " " \
     "no" " " 3>&2 2>&1 1>&3)
@@ -106,9 +83,6 @@ EOF
       msg_info "Correcting 'ceph package repositories'"
       cat <<EOF >/etc/apt/sources.list.d/ceph.list
 # deb https://enterprise.proxmox.com/debian/ceph-quincy bookworm enterprise
-# deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription
-# deb https://enterprise.proxmox.com/debian/ceph-reef bookworm enterprise
-# deb http://download.proxmox.com/debian/ceph-reef bookworm no-subscription
 EOF
       msg_ok "Corrected 'ceph package repositories'"
       ;;
@@ -116,22 +90,6 @@ EOF
       msg_error "Selected no to Correcting 'ceph package repositories'"
       ;;
     esac
-
-  CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "PVETEST" --menu "The 'pvetest' repository can give advanced users access to new features and updates before they are officially released.\n \nAdd (Disabled) 'pvetest' repository?" 14 58 2 \
-    "yes" " " \
-    "no" " " 3>&2 2>&1 1>&3)
-  case $CHOICE in
-  yes)
-    msg_info "Adding 'pvetest' repository and set disabled"
-    cat <<EOF >/etc/apt/sources.list.d/pvetest-for-beta.list
-# deb http://download.proxmox.com/debian/pve bookworm pvetest
-EOF
-    msg_ok "Added 'pvetest' repository"
-    ;;
-  no)
-    msg_error "Selected no to Adding 'pvetest' repository"
-    ;;
-  esac
 
   if [[ ! -f /etc/apt/apt.conf.d/no-nag-script ]]; then
     CHOICE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUBSCRIPTION NAG" --menu "This will disable the nag message reminding you to purchase a subscription every time you log in to the web interface.\n \nDisable subscription nag?" 14 58 2 \
