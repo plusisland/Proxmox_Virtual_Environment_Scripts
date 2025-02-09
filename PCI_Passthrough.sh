@@ -34,21 +34,23 @@ for module in "${modules[@]}"; do
   fi
 done
 
-# 增加裝置黑名單
-blacklist_modules=("amdgpu" "radeon" "nouveau" "nvidia*" "i915" "mt7921e")
-if ! grep -q "blacklist " /etc/modprobe.d/blacklist.conf; then
-  echo "${blacklist_modules[@]}" | sed 's/ /\nblacklist /g' | sed '$s/$/\n/' >> /etc/modprobe.d/blacklist.conf
-  echo "模組已加入黑名單。"
-else
-  for module in "${blacklist_modules[@]}"; do
-    if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
-      echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
-      echo "裝置 $module 已加入黑名單。"
-    else
-      echo "裝置 $module 已在黑名單中，無需重複添加。"
-    fi
-  done
+# 主機阻斷硬體
+modules=("amdgpu" "radeon" "nouveau" "nvidia*" "i915" "mt7921e")
+
+# 檢查檔案是否存在，不存在則建立
+if [ ! -f /etc/modprobe.d/blacklist.conf ]; then
+  touch /etc/modprobe.d/blacklist.conf
 fi
+
+# 逐個檢查是否已在黑名單中
+for module in "${modules[@]}"; do
+  if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
+    echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
+    echo "硬體 $module 已加入黑名單。"
+  else
+    echo "硬體 $module 已在黑名單中，無需重複添加。"
+  fi
+done
 
 # 更新核心參數
 echo "正在更新核心參數..."
