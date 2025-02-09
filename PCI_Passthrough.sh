@@ -35,7 +35,7 @@ for module in "${modules[@]}"; do
 done
 
 # 主機阻斷硬體
-modules=("amdgpu" "radeon" "nouveau" "nvidia*" "i915" "mt7921e")
+modules=("i915" "mt7921e")
 
 # 檢查檔案是否存在，不存在則建立
 if [ ! -f /etc/modprobe.d/blacklist.conf ]; then
