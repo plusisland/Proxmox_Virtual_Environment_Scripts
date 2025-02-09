@@ -1,4 +1,3 @@
-```bash
 #!/usr/bin/env bash
 # https://pve.proxmox.com/wiki/Package_Repositories
 
