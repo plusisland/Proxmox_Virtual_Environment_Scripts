@@ -467,15 +467,13 @@ for i in {0,1}; do
 done
 
 msg_info "Creating OpenWrt VM"
-qm create $VMID -machine q35 -bios ovmf -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
+qm create $VMID -cpu host -machine q35 -bios ovmf -cores $CORE_COUNT -memory $RAM_SIZE -name $HN \
   -onboot 1 -ostype l26 -scsihw virtio-scsi-pci --tablet 0
 pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
 qm importdisk $VMID ${FILE%.*} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
   -scsi0 ${DISK1_REF},size=512M \
-  -boot order=scsi0 \
-  -tags community-script \
-  -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/images/logo-81x112.png'/></a>
+  -boot order=scsi0
 
   # OpenWRT
 
