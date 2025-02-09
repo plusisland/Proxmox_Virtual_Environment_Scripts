@@ -902,25 +902,16 @@ sed -i '/'"'"'diskread'"'"', '"'"'diskwrite'"'"'/{n;s/		    store: rrdstore/		  
 # 去除訂閱提示
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
 
-APT_SOURCES_LIST="/etc/apt/sources.list.d"
-
 # 移除PVE企業訂閱源
-PVE_ENTERPRISE_SOURCE="${APT_SOURCES_LIST}/pve-enterprise.list"
-if [ -f $PVE_ENTERPRISE_SOURCE ]; then
-    mv $PVE_ENTERPRISE_SOURCE "${PVE_ENTERPRISE_SOURCE}.bak"
-fi
-
-PVE_NO_SUBSCRIPTION_SOURCE="${APT_SOURCES_LIST}/pve-no-subscription.list"
-if [ ! -f $PVE_NO_SUBSCRIPTION_SOURCE ]; then
-    # 增加PVE內核官方源
-    echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > $PVE_NO_SUBSCRIPTION_SOURCE
-    echo "deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription" > $PVE_NO_SUBSCRIPTION_SOURCE
-    echo "deb http://download.proxmox.com/debian/ceph-reef bookworm no-subscription" > $PVE_NO_SUBSCRIPTION_SOURCE
-    echo "deb http://download.proxmox.com/debian/ceph-squid bookworm no-subscription" > $PVE_NO_SUBSCRIPTION_SOURCE
-
-    # 記得更新下索引
-    apt update
-fi
+truncate -s 0 /etc/apt/sources.list.d/pve-enterprise.list
+truncate -s 0 /etc/apt/sources.list.d/ceph.list
+#添加非訂閱源
+echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" >> /etc/apt/sources.list
+echo "deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription" >> /etc/apt/sources.list.d/ceph.list
+echo "deb http://download.proxmox.com/debian/ceph-reef bookworm no-subscription" >> /etc/apt/sources.list.d/ceph.list
+echo "deb http://download.proxmox.com/debian/ceph-squid bookworm no-subscription" >> /etc/apt/sources.list.d/ceph.list
+#更新套件庫
+apt update
 
 echo -e "嘗試解決PVE下部分PCIe設備不顯示名稱的問題......"
 update-pciids
