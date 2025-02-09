@@ -33,3 +33,11 @@ opkg install mt7922bt-firmware
 #安裝韌體
 
 opkg install kmod-mt7922-firmware
+
+#安裝 wpa-supplicant
+
+opkg install wpa-supplicant
+
+#安裝 hostapd
+
+opkg install hostapd
