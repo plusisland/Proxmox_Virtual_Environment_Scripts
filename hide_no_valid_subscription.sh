@@ -7,7 +7,7 @@ read -p "要隱藏無訂閱訊息視窗嗎？(y/n/r): " choice
 
 case "$choice" in
   y)
-    sed -i 's/Ext.Msg.show({\n\s*title: gettext(\'No valid subscription\'/Ext.Msg.noshow({\n\s*title: gettext(\'No valid subscription\'/g' "$FILE"
+    sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" "$FILE"
     echo "檔案 $file 已修改，重新啟動 pveproxy。"
     systemctl restart pveproxy
     ;;
