@@ -33,8 +33,9 @@ for module in "${modules[@]}"; do
 done
 
 # 主機阻斷硬體
-# 擷取包含 "Kernel modules:" 的裝置資訊
+# 只擷取 PCI 與 VGA 裝置資訊
 lspci -k | sed -n '/PCI bridge:/,/Kernel modules:/p; /VGA compatible controller:/,/Kernel modules:/p' > modules.txt
+# 移除多餘資訊
 sed -i -e '/Subsystem:/d' -e '/Kernel driver in use:/d' modules.txt
 
 # 顯示硬體模組列表給使用者選擇
@@ -42,7 +43,7 @@ echo "以下是可用的硬體模組列表："
 cat modules.txt | nl -w1 -s". "
 
 # 讓使用者選擇要加入黑名單的硬體模組
-read -p "請輸入要加入黑名單的硬體模組行號 (輸入有 Kernel modules 那行的行號，多個編號以逗號分隔): " choices
+read -p "請輸入要加入黑名單的硬體模組行號 (輸入有 Kernel modules 那行的行號，如需多個項目請以,分隔): " choices
 
 # 處理使用者選擇
 IFS=',' read -r -a choice_array <<< "$choices"
