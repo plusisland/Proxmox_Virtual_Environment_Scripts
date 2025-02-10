@@ -4,7 +4,7 @@
 file="/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js"
 
 show_code='Ext.Msg.show({\s*title: gettext\(\'No valid subscription\'\),\s*icon: Ext.Msg.WARNING,'
-noshow_code='Ext.Msg.noshow({\s*title: gettext\(\\'No valid subscription\\'\),\s*icon: Ext.Msg.WARNING,'
+noshow_code='Ext.Msg.noshow({\s*title: gettext\(\'No valid subscription\'\),\s*icon: Ext.Msg.WARNING,'
 
 read -p "要隱藏無訂閱訊息視窗嗎？(y/n/r): " choice
 
