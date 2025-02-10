@@ -35,6 +35,7 @@ done
 # 主機阻斷硬體
 # 擷取包含 "Kernel modules:" 的裝置資訊
 lspci -k | sed -n '/PCI bridge:/,/Kernel modules:/p; /VGA compatible controller:/,/Kernel modules:/p' > modules.txt
+sed -i -e '/Subsystem:/d' -e '/Kernel driver in use:/d' modules.txt
 
 # 顯示硬體模組列表給使用者選擇
 echo "以下是可用的硬體模組列表："
@@ -44,28 +45,17 @@ cat modules.txt | nl -w1 -s". "
 read -p "請輸入要加入黑名單的硬體模組行號 (輸入有 Kernel modules 那行的行號，多個編號以逗號分隔): " choices
 
 # 處理使用者選擇
-if [[ "$choices" == "all" ]]; then
-  cat modules.txt | awk '{print $3}' | tr ',' '\n' | grep -v '' | while read module; do
-    if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
-      echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
-      echo "硬體 $module 已加入黑名單。"
-    else
-      echo "硬體 $module 已在黑名單中，無需重複添加。"
-    fi
-  done
-else
-  IFS=',' read -r -a choice_array <<< "$choices"
-  for choice in "${choice_array[@]}"; do
-    line=$(sed -n "${choice}p" modules.txt)
-    module=$(echo "$line" | awk '{print $3}' | tr ',' '\n' | head -n 1)
-    if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
-      echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
-      echo "硬體 $module 已加入黑名單。"
-    else
-      echo "硬體 $module 已在黑名單中，無需重複添加。"
-    fi
-  done
-fi
+IFS=',' read -r -a choice_array <<< "$choices"
+for choice in "${choice_array[@]}"; do
+  line=$(sed -n "${choice}p" modules.txt)
+  module=$(echo "$line" | awk '{print $3}' | tr ',' '\n' | head -n 1)
+  if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
+    echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
+    echo "硬體 $module 已加入黑名單。"
+  else
+    echo "硬體 $module 已在黑名單中，無需重複添加。"
+  fi
+done
 
 # 清理 modules.txt 檔案
 rm modules.txt
