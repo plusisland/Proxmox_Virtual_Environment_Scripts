@@ -8,7 +8,7 @@ bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox/refs
 ```
 2.PCIe設備直通
 ```
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/-Proxmox/refs/heads/main/PCI_Passthrough.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox/refs/heads/main/set_pcie_passthrough.sh)"
 ```
 3.OpenWrt建立
 ```
