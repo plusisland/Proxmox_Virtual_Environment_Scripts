@@ -33,22 +33,41 @@ for module in "${modules[@]}"; do
 done
 
 # 主機阻斷硬體
-modules=("i915" "mt7921e")
+# 列出可用的硬體模組
+lspci -k | grep -A 3 "Kernel modules:" | awk '{print $3}' | tr ' ' '\n' | grep -v '' > modules.txt
 
-# 檢查檔案是否存在，不存在則建立
-if [ ! -f /etc/modprobe.d/blacklist.conf ]; then
-  touch /etc/modprobe.d/blacklist.conf
+# 顯示硬體模組列表給使用者選擇
+echo "以下是可用的硬體模組列表："
+cat modules.txt | nl -w1 -s". "
+
+# 讓使用者選擇要加入黑名單的硬體模組
+read -p "請輸入要加入黑名單的硬體模組編號 (多個編號以逗號分隔，或輸入 all 加入所有模組): " choices
+
+# 處理使用者選擇
+if [[ "$choices" == "all" ]]; then
+  cat modules.txt | while read module; do
+    if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
+      echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
+      echo "硬體 $module 已加入黑名單。"
+    else
+      echo "硬體 $module 已在黑名單中，無需重複添加。"
+    fi
+  done
+else
+  IFS=',' read -r -a choice_array <<< "$choices"
+  for choice in "${choice_array[@]}"; do
+    module=$(sed -n "${choice}p" modules.txt)
+    if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
+      echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
+      echo "硬體 $module 已加入黑名單。"
+    else
+      echo "硬體 $module 已在黑名單中，無需重複添加。"
+    fi
+  done
 fi
 
-# 逐個檢查是否已在黑名單中
-for module in "${modules[@]}"; do
-  if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
-    echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
-    echo "硬體 $module 已加入黑名單。"
-  else
-    echo "硬體 $module 已在黑名單中，無需重複添加。"
-  fi
-done
+# 清理 modules.txt 檔案
+rm modules.txt
 
 # 更新核心參數
 echo "正在更新核心參數..."
