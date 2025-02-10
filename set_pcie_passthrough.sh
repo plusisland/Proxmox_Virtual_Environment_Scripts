@@ -33,8 +33,8 @@ for module in "${modules[@]}"; do
 done
 
 # 主機阻斷硬體
-# 列出可用的硬體模組
-lspci -k | grep -A 3 "Kernel modules:" | awk '{print $3}' | tr ' ' '\n' | grep -v '' > modules.txt
+# 擷取包含 "Kernel modules:" 的裝置資訊
+lspci -k | grep "Kernel modules:" > modules.txt
 
 # 顯示硬體模組列表給使用者選擇
 echo "以下是可用的硬體模組列表："
@@ -45,7 +45,7 @@ read -p "請輸入要加入黑名單的硬體模組編號 (多個編號以逗號
 
 # 處理使用者選擇
 if [[ "$choices" == "all" ]]; then
-  cat modules.txt | while read module; do
+  cat modules.txt | awk '{print $3}' | tr ',' '\n' | grep -v '' | while read module; do
     if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
       echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
       echo "硬體 $module 已加入黑名單。"
@@ -56,7 +56,8 @@ if [[ "$choices" == "all" ]]; then
 else
   IFS=',' read -r -a choice_array <<< "$choices"
   for choice in "${choice_array[@]}"; do
-    module=$(sed -n "${choice}p" modules.txt)
+    line=$(sed -n "${choice}p" modules.txt)
+    module=$(echo "$line" | awk '{print $3}' | tr ',' '\n' | head -n 1)
     if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
       echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
       echo "硬體 $module 已加入黑名單。"
