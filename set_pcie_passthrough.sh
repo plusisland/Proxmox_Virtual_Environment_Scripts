@@ -34,14 +34,14 @@ done
 
 # 主機阻斷硬體
 # 擷取包含 "Kernel modules:" 的裝置資訊
-lspci -k | grep "Kernel modules:" > modules.txt
+lspci -k | sed -n '/PCI bridge:/,/Kernel modules:/p; /VGA compatible controller:/,/Kernel modules:/p' > modules.txt
 
 # 顯示硬體模組列表給使用者選擇
 echo "以下是可用的硬體模組列表："
 cat modules.txt | nl -w1 -s". "
 
 # 讓使用者選擇要加入黑名單的硬體模組
-read -p "請輸入要加入黑名單的硬體模組編號 (多個編號以逗號分隔，或輸入 all 加入所有模組): " choices
+read -p "請輸入要加入黑名單的硬體模組行號 (輸入有 Kernel modules 那行的行號，多個編號以逗號分隔): " choices
 
 # 處理使用者選擇
 if [[ "$choices" == "all" ]]; then
