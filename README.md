@@ -1,10 +1,10 @@
 0.隱藏非訂閱訊息視窗
 ```
-bash -c "$(wget -qLO - https://github.com/plusisland/Proxmox/raw/refs/heads/main/hide_no_valid_subscription.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox/refs/heads/main/hide_no_valid_subscription.sh)"
 ```
 1.設定非訂閱套件庫
 ```
-bash -c "$(wget -qLO - https://github.com/plusisland/Proxmox/raw/refs/heads/main/hide_no_valid_subscription.sh)](https://github.com/plusisland/Proxmox/raw/refs/heads/main/set_no_subscription_repositories.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox/refs/heads/main/set_no_subscription_repositories.sh)"
 ```
 2.PCIe設備直通
 ```
