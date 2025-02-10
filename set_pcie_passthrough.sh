@@ -49,6 +49,10 @@ IFS=',' read -r -a choice_array <<< "$choices"
 for choice in "${choice_array[@]}"; do
   line=$(sed -n "${choice}p" modules.txt)
   module=$(echo "$line" | awk '{print $3}' | tr ',' '\n' | head -n 1)
+  # 檢查黑名單檔案是否存在，若不存在則建立
+  if [ ! -f "/etc/modprobe.d/blacklist.conf" ]; then
+      touch /etc/modprobe.d/blacklist.conf
+  fi
   if ! grep -q "blacklist $module" /etc/modprobe.d/blacklist.conf; then
     echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
     echo "硬體 $module 已加入黑名單。"
