@@ -33,10 +33,10 @@ for module in "${modules[@]}"; do
 done
 
 # 只擷取 PCI 與 VGA 裝置資訊
-lspci -k | sed -n '/PCI bridge:/,/Kernel modules:/p; /VGA compatible controller:/,/Kernel modules:/p' > modules.txt
+lspci -k | sed -n '/VGA compatible controller:/,/Kernel modules:/p; /Network controller:/,/Kernel modules:/p' > modules.txt
 
 # 刪除多餘資訊
-sed -i -e '/Subsystem:/d' -e '/Kernel driver in use:/d' modules.txt
+sed -i -e '/DeviceName:/d' -e '/Subsystem:/d' -e '/Kernel driver in use:/d' modules.txt
 
 # 顯示硬體模組列表給使用者選擇
 echo "以下是可用的硬體模組列表："
