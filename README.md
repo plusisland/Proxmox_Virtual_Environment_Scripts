@@ -31,7 +31,7 @@ bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virt
 此腳本將引導您在 Proxmox VE 中建立 OpenWrt 虛擬機器，並進行相關設定。
 
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/OpenWrt.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/pcie_wifi_card_via_openwrt.sh)"
 ```
 
 **OpenWrt 安裝完成後，請按照以下步驟進行設定：**
