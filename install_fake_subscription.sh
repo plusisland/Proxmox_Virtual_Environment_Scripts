@@ -9,6 +9,7 @@ case "$choice" in
   y)
     wget -q https://github.com/Jamesits/pve-fake-subscription/releases/download/v0.0.11/pve-fake-subscription_0.0.11+git-1_all.deb
     dpkg -i pve-fake-subscription_*.deb
+    rm -rf pve-fake-subscription_*.deb
     #echo "127.0.0.1 shop.maurer-it.com" | sudo tee -a /etc/hosts
     ;;
   n)
