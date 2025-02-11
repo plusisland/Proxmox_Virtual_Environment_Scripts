@@ -7,7 +7,7 @@
 此腳本將移除 Proxmox VE 管理介面中顯示的未訂閱訊息視窗，讓介面更簡潔。
 
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/hide_no_valid_subscription.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/install_fake_subscription.sh)"
 ```
 
 ### 2\. 設定非訂閱套件庫
