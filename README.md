@@ -2,9 +2,9 @@
 
 本指南提供一系列腳本，協助您快速設定 Proxmox VE 環境，包含移除未訂閱提示、設定非訂閱套件庫、PCIe 設備直通以及 OpenWrt 安裝。
 
-### 1\. 移除未訂閱訊息視窗
+### 1\. 安裝假授權
 
-此腳本將移除 Proxmox VE 管理介面中顯示的未訂閱訊息視窗，讓介面更簡潔。
+此腳本將安裝假授權。
 
 ```bash
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/install_fake_subscription.sh)"
