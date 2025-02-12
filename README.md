@@ -1,32 +1,16 @@
 ## Proxmox VE 常用設定與安裝腳本
 
-本指南提供一系列腳本，協助您快速設定 Proxmox VE 環境，包含移除未訂閱提示、設定非訂閱套件庫、PCIe 設備直通以及 OpenWrt 安裝。
+本指南提供一系列腳本，協助您快速設定 Proxmox VE 環境，設定非訂閱套件庫及 OpenWrt 安裝。
 
-### 1\. 移除未訂閱提示 (安裝假授權)
-
-此腳本將安裝假授權，以移除 Proxmox VE 介面上的未訂閱提示。
-
-```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/install_fake_subscription.sh)"
-```
-
-### 2\. 設定非訂閱套件庫
+### 1\. 設定非訂閱套件庫
 
 此腳本將設定 Proxmox VE 的非訂閱套件庫，允許您安裝社群維護的軟體包。
 
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/set_no_subscription_repositories.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/no_subscription_repositories.sh)"
 ```
 
-### 3\. PCIe 設備直通
-
-此腳本將協助您設定 PCIe 設備直通，允許虛擬機器直接存取實體 PCIe 設備，例如顯示卡、網卡等。  **（請注意，PCIe 直通需要硬體支援，請確認您的 CPU 和主機板支援 IOMMU）**
-
-```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/set_pcie_passthrough.sh)"
-```
-
-### 4\. OpenWrt 安裝與設定
+### 2\. OpenWrt 安裝與設定
 
 此腳本將引導您在 Proxmox VE 中建立 OpenWrt 虛擬機器，並進行相關設定。
 
