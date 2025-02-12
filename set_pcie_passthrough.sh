@@ -32,7 +32,7 @@ for module in "${modules[@]}"; do
   fi
 done
 
-# 只擷取 PCI 與 VGA 裝置資訊
+# 只擷取 VGA 與 Network 裝置資訊
 lspci -k | sed -n '/VGA compatible controller:/,/Kernel modules:/p; /Network controller:/,/Kernel modules:/p' > modules.txt
 
 # 刪除多餘資訊
