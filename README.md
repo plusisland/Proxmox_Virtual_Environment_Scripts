@@ -10,7 +10,15 @@
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/no_subscription_repositories.sh)"
 ```
 
-### 2\. OpenWrt 安裝與設定
+### 2\. 設定 PCIe Passthrough
+
+此腳本將設定 PCIe Passthrough。
+
+```bash
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/set_pcie_passthrough.sh)"
+```
+
+### 3\. OpenWrt 安裝與設定
 
 此腳本將引導您在 Proxmox VE 中建立 OpenWrt 虛擬機器，並進行相關設定。
 
