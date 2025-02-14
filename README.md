@@ -2,6 +2,14 @@
 
 本指南提供一系列腳本，協助您快速設定 Proxmox VE 環境，設定非訂閱套件庫及 OpenWrt 安裝。
 
+### 0\. 安裝假訂閱合約
+
+此腳本將設定 Proxmox VE 的技術支援合約。
+
+```bash
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/install_fake_subscription.sh)"
+```
+
 ### 1\. 設定非訂閱套件庫
 
 此腳本將設定 Proxmox VE 的非訂閱套件庫，允許您安裝社群維護的軟體包。
