@@ -1,119 +1,162 @@
 #!/usr/bin/env bash
 # https://openwrt.org/docs/guide-user/virtualization/qemu?s[]=proxmox#openwrt_in_qemu_x86-64
 
-# 腳本描述：在 Proxmox VE 中自動創建 OpenWrt 虛擬機
+# ----- 使用者可設定變數 -----
+DEFAULT_VMID=100
+DEFAULT_DISK_SIZE=512
+DEFAULT_CPU_COUNT=1
+DEFAULT_RAM_SIZE=256
+DEFAULT_LAN_IP="192.168.1.1"
+DEFAULT_BRIDGE_IFACE="enp1s1"
+VMBR1_IP="192.168.1.2/24"
+STORAGE_ID=$(grep -oP '^(lvmthin|zfspool|dir): \K[^:]+' /etc/pve/storage.cfg | head -n 1)
 
-# === 變數設定 (使用者可自訂) ===
-VM_ID=101          # 虛擬機 ID (請確保 ID 未被使用)
-VM_NAME="OpenWrt-Router" # 虛擬機名稱
-VM_STORAGE="local-lvm"    # 虛擬機儲存位置 (例如 local, local-lvm, your_storage_name)
-VM_DISK_SIZE="1G"       # 虛擬硬碟大小 (例如 512M, 1G, 2G)
-VM_MEMORY="512"         # 記憶體大小 (MB)
-VM_CPUS="1"           # CPU 核心數量
-VM_NET_BRIDGE="vmbr0"   # 網路橋接介面 (請根據 Proxmox 環境修改)
-OPENWRT_VERSION="23.05" # 指定 OpenWrt 版本 (例如 23.05, 22.03，或留空抓取最新穩定版)
-
-# === 腳本設定 (一般情況下無需修改) ===
-TARGET_ARCH="x86/64"
-IMAGE_TYPE="generic-ext4-combined-efi"
-DOWNLOAD_URL_BASE="https://downloads.openwrt.org/releases"
-IMAGE_FILE_EXTENSION="img.gz"
-IMAGE_FILENAME_BASE="openwrt-${OPENWRT_VERSION}-${TARGET_ARCH}-${IMAGE_TYPE}"
-IMAGE_FILENAME_GZ="${IMAGE_FILENAME_BASE}.${IMAGE_FILE_EXTENSION}"
-IMAGE_FILENAME="${IMAGE_FILENAME_BASE}.${IMAGE_FILE_EXTENSION%.*}"
-IMG_PATH="${IMAGE_FILENAME}"
-
-# === 函數定義 ===
+# ----- 函式定義 -----
 error_exit() {
-  echo "錯誤: $1" >&2
-  exit 1
+    echo "錯誤: $1"
+    exit 1
 }
 
-check_command() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    error_exit "指令 '$1' 未安裝，請先安裝。"
-  fi
+check_command_status() {
+    if [ $1 -ne 0 ]; then
+        error_exit "$2 指令執行失敗！"
+    fi
 }
 
-# === 檢查必要指令 ===
-check_command curl
-check_command wget
-check_command gunzip
-check_command qemu-img
-check_command losetup
-check_command parted
-check_command qm
+# ----- 詢問使用者是否自訂網路設定 -----
+read -p "是否自訂 vmbr1 IP 位址和橋接介面卡名稱？ (y/N，預設 N): " CUSTOM_NETWORK
+if [[ "$CUSTOM_NETWORK" =~ ^[yY] ]]; then
+    read -p "請輸入 vmbr1 IP 位址 (例如 192.168.1.2/24): " VMBR1_IP_CUSTOM
+    if [ -n "$VMBR1_IP_CUSTOM" ]; then
+        VMBR1_IP="$VMBR1_IP_CUSTOM"
+    fi
+    read -p "請輸入要橋接的網路介面卡名稱 (例如 enp1s1): " BRIDGE_IFACE_CUSTOM
+    if [ -n "$BRIDGE_IFACE_CUSTOM" ]; then
+        DEFAULT_BRIDGE_IFACE="$BRIDGE_IFACE_CUSTOM"
+    fi
+fi
 
-# === 抓取 OpenWrt 版本號 (如果未指定) ===
-if [ -z "$OPENWRT_VERSION" ]; then
-  echo "資訊: 未指定 OpenWrt 版本，嘗試抓取最新穩定版..."
-  response=$(curl -s "https://openwrt.org/")
-  if [[ "$response" =~ "Current stable release - OpenWrt ([0-9.]+)" ]]; then
-    OPENWRT_VERSION="${BASH_REMATCH[1]}"
-    IMAGE_FILENAME_BASE="openwrt-${OPENWRT_VERSION}-${TARGET_ARCH}-${IMAGE_TYPE}"
-    IMAGE_FILENAME_GZ="${IMAGE_FILENAME_BASE}.${IMAGE_FILE_EXTENSION}"
-    IMAGE_FILENAME="${IMAGE_FILENAME_BASE}.${IMAGE_FILE_EXTENSION%.*}"
-    IMG_PATH="${IMAGE_FILENAME}"
-    echo "資訊: 最新穩定版為 OpenWrt ${OPENWRT_VERSION}"
-  else
-    error_exit "無法從 openwrt.org 抓取最新版本號，請手動設定 OPENWRT_VERSION 變數。"
-  fi
+# ----- 詢問使用者輸入 -----
+read -p "請輸入 VM ID（預設 ${DEFAULT_VMID}）: " VMID
+VMID=${VMID:-$DEFAULT_VMID}
+if ! [[ "$VMID" =~ ^[0-9]+$ ]]; then
+    error_exit "VM ID 必須是數字！"
+fi
+
+read -p "請輸入虛擬機名稱: " VM_NAME
+if [ -z "$VM_NAME" ]; then
+    error_exit "虛擬機名稱不能為空！"
+fi
+
+read -p "請輸入 CPU 數量（預設 ${DEFAULT_CPU_COUNT}）: " CPU_COUNT
+CPU_COUNT=${CPU_COUNT:-$DEFAULT_CPU_COUNT}
+if ! [[ "$CPU_COUNT" =~ ^[0-9]+$ ]]; then
+    error_exit "CPU 數量必須是數字！"
+fi
+
+read -p "請輸入 RAM 大小（MB，預設 ${DEFAULT_RAM_SIZE}MB）: " RAM_SIZE
+RAM_SIZE=${RAM_SIZE:-$DEFAULT_RAM_SIZE}
+if ! [[ "$RAM_SIZE" =~ ^[0-9]+$ ]]; then
+    error_exit "RAM 大小必須是數字！"
+fi
+
+read -p "請輸入 OpenWRT 磁碟大小（MB，預設 ${DEFAULT_DISK_SIZE}MB）: " DISK_SIZE
+DISK_SIZE=${DISK_SIZE:-$DEFAULT_DISK_SIZE}
+if ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]]; then
+    error_exit "磁碟大小必須是數字！"
+fi
+
+read -p "請輸入 LAN IP（預設 ${DEFAULT_LAN_IP}）: " LAN_IP
+LAN_IP=${LAN_IP:-$DEFAULT_LAN_IP}
+
+BRIDGE_IFACE="$DEFAULT_BRIDGE_IFACE" # 確保橋接介面名稱使用變數
+
+# ----- 檢查並建立 vmbr1 -----
+if ! ip link show vmbr1 &>/dev/null; then
+    echo "建立 vmbr1 橋接..."
+    echo -e "\nauto vmbr1\niface vmbr1 inet static\n  address $VMBR1_IP\n  bridge-ports $BRIDGE_IFACE\n  bridge-stp off\n  bridge-fd 0" >> /etc/network/interfaces
+    ifup vmbr1
+    check_command_status $? "ifup vmbr1"
 else
-  echo "資訊: 使用指定的 OpenWrt 版本: ${OPENWRT_VERSION}"
+    echo "vmbr1 已存在，跳過建立步驟。"
 fi
 
-# === 建立下載 URL ===
-DOWNLOAD_URL="${DOWNLOAD_URL_BASE}/${OPENWRT_VERSION}/targets/${TARGET_ARCH}/${IMAGE_FILENAME_GZ}"
-
-echo "資訊: 下載 OpenWrt 映像檔: ${DOWNLOAD_URL}"
-
-# === 下載 OpenWrt 映像檔 ===
-wget --show-progress "$DOWNLOAD_URL" || error_exit "下載映像檔失敗。"
-
-# === 解壓縮 OpenWrt 映像檔 ===
-echo "資訊: 解壓縮映像檔: ${IMAGE_FILENAME_GZ}"
-gunzip -f "$IMAGE_FILENAME_GZ" || error_exit "解壓縮映像檔失敗。"
-
-# === 調整硬碟大小 ===
-echo "資訊: 調整虛擬硬碟大小為: ${VM_DISK_SIZE}"
-qemu-img resize -f raw "$IMAGE_FILENAME" "$VM_DISK_SIZE" || error_exit "調整硬碟大小失敗。"
-
-# === 處理分割區 (調整第二分割區大小) ===
-echo "資訊: 調整分割區大小..."
-loop_device=$(losetup -f)
-losetup "$loop_device" "$IMAGE_FILENAME" || error_exit "建立 loop device 失敗。"
-
-if ! parted -s "$loop_device" print > /dev/null 2>&1; then
-  losetup -d "$loop_device"
-  error_exit "讀取分割區資訊失敗。"
+# ----- 取得 OpenWRT 最新穩定版 -----
+RELEASES_URL="https://downloads.openwrt.org/releases/"
+STABLE_VERSION=$(curl -s "$RELEASES_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+\.[0-9]+/' | tr -d '/' | head -n 1)
+if [ -z "$STABLE_VERSION" ]; then
+    error_exit "無法取得 OpenWRT 最新穩定版本號！"
 fi
 
-if ! parted -s "$loop_device" resizepart 2 100%; then
-  losetup -d "$loop_device"
-  error_exit "調整分割區大小失敗。"
-fi
+URL="https://downloads.openwrt.org/releases/$STABLE_VERSION/targets/x86/64/openwrt-$STABLE_VERSION-x86-64-generic-ext4-combined-efi.img.gz"
+echo "下載 OpenWRT $STABLE_VERSION EFI IMG..."
+wget -q --show-progress "$URL" || error_exit "下載 OpenWRT 失敗！"
 
-losetup -d "$loop_device" || error_exit "解除 loop device 失敗。"
-echo "資訊: 分割區大小調整完成。"
+gunzip -f "openwrt-$STABLE_VERSION-x86-64-generic-ext4-combined-efi.img.gz"
+IMG_FILE="openwrt-$STABLE_VERSION-x86-64-generic-ext4-combined-efi.img"
 
-# === 創建 Proxmox 虛擬機 ===
-echo "資訊: 創建 Proxmox 虛擬機，ID: ${VM_ID}, 名稱: ${VM_NAME}"
-qm create "$VM_ID" --name "$VM_NAME" --memory "$VM_MEMORY" --cores "$VM_CPUS" --net0 virtio,bridge="${VM_NET_BRIDGE}" --machine q35 --bios ovmf -onboot 1 -ostype other --scsihw virtio-scsi-pci || error_exit "創建虛擬機失敗。"
+# ----- 調整映像大小 -----
+echo "調整映像檔大小為 ${DISK_SIZE}MB..."
+qemu-img resize -f raw "$IMG_FILE" "${DISK_SIZE}M"
+check_command_status $? "qemu-img resize"
 
-# === 匯入 OpenWrt 映像檔為虛擬硬碟 ===
-echo "資訊: 匯入 OpenWrt 映像檔為虛擬硬碟..."
-qm importdisk "$VM_ID" "$IMG_PATH" "$VM_STORAGE" || error_exit "匯入虛擬硬碟失敗。"
+# ----- 建立虛擬機 -----
+echo "建立虛擬機..."
+qm create "$VMID" --name "$VM_NAME" --onboot 1 --ostype l26 --machine q35 --bios ovmf --memory "$RAM_SIZE" --cores "$CPU_COUNT" --cpu host --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1
+check_command_status $? "qm create"
 
-# === 設定虛擬機硬碟為主磁碟並設定開機順序 ===
-echo "資訊: 設定虛擬機硬碟為主磁碟並設定開機順序..."
-qm set "$VM_ID" --scsi0 "$VM_STORAGE":"vm-${VM_ID}-disk-0" --boot order=scsi0 || error_exit "設定虛擬機硬碟為主磁碟失敗。"
+# ----- 匯入磁碟 -----
+echo "匯入磁碟..."
+qm importdisk "$VMID" "$IMG_FILE" "$STORAGE_ID" --format raw
+check_command_status $? "qm importdisk"
+qm set "$VMID" --scsihw virtio-scsi-single --virtio0 "$STORAGE_ID:vm-$VMID-disk-0"
+check_command_status $? "qm set --scsihw virtio-scsi-single --virtio0"
+echo "磁碟匯入完成。"
 
-# 啟動虛擬機
-echo "資訊: 啟動虛擬機..."
-qm start "$VM_ID" || error_exit "啟動虛擬機失敗。"
+# ----- 啟動 VM -----
+echo "啟動虛擬機..."
+qm start "$VMID"
+check_command_status $? "qm start"
+echo "虛擬機已啟動，VM ID: $VMID。"
 
-# 顯示虛擬機狀態
-qm status "$VM_ID"
+# ----- 設定 OpenWRT 網路與安裝套件 (使用 qm terminal 並加入錯誤檢查) -----
+echo "設定 OpenWRT 網路與安裝套件..."
 
-echo "資訊: OpenWrt 虛擬機 (ID: ${VM_ID}, 名稱: ${VM_NAME}) 創建完成！"
-echo "資訊: 您現在可以進行設定。"
+# 定義要安裝的套件列表
+packages="luci-i18n-base-zh-tw pciutils kmod-mt7921e mt7922bt-firmware kmod-mt7922-firmware wpa-supplicant hostapd"
+
+# 使用 qm terminal 執行指令，並檢查錯誤
+execute_remote_command() {
+    local command="$1"
+    local error_message="$2"
+    local result
+    result=$(qm terminal "$VMID" --noecho --command "$command ; echo \$?") 2>/dev/null # 忽略 qm terminal 的提示訊息
+    remote_exit_code=$(echo "$result" | tail -n 1) # 取得遠端指令的 exit code
+    if ! [[ "$remote_exit_code" =~ ^[0-9]+$ ]]; then # 檢查 exit code 是否為數字
+        error_exit "執行遠端指令時發生錯誤，無法取得 exit code：$error_message"
+    fi
+    check_command_status "$remote_exit_code" "$error_message"
+}
+
+# 設定 LAN IP
+execute_remote_command "uci set network.lan.ipaddr='$LAN_IP' && uci commit network && /etc/init.d/network restart" "設定 LAN IP 位址失敗"
+
+# 更新 opkg
+execute_remote_command "opkg update" "更新 opkg 失敗"
+
+# 迴圈安裝套件
+for pkg in $packages; do
+    execute_remote_command "opkg install $pkg" "安裝套件 $pkg 失敗"
+done
+
+echo "OpenWRT 基本設定與套件安裝完成。"
+
+# ----- 輸出完成訊息 -----
+echo "--------------------------------------------------"
+echo "OpenWRT 虛擬機建立完成！"
+echo "VM ID: $VMID"
+echo "虛擬機名稱: $VM_NAME"
+echo "LAN IP 位址: $LAN_IP"
+echo "--------------------------------------------------"
+echo "請手動設定 PCI passthrough，並將 m.2 Wi-Fi 卡直通給 VM ID $VMID。"
+echo "OpenWRT Web 介面: http://$LAN_IP"
