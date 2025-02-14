@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# https://pve.proxmox.com/pve-docs/chapter-sysadmin.html#sysadmin_package_repositories
 
 # 定義 PVE 非訂閱套件庫
 pve_no_subscription="deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription"
