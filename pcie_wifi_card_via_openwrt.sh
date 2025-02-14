@@ -8,7 +8,7 @@ DEFAULT_CPU_COUNT=1
 DEFAULT_RAM_SIZE=256
 DEFAULT_LAN_IP="192.168.1.1"
 DEFAULT_BRIDGE_IFACE="enp1s1"
-VMBR1_IP="192.168.1.2/24"
+# VMBR1_IP="192.168.1.2/24"  移除 VMBR1_IP 變數
 STORAGE_ID=$(grep -oP '^(lvmthin|zfspool|dir): \K[^:]+' /etc/pve/storage.cfg | head -n 1)
 
 # ----- 函式定義 -----
@@ -20,16 +20,18 @@ error_exit() {
 check_command_status() {
     if [ $1 -ne 0 ]; then
         error_exit "$2 指令執行失敗！"
-    fi
+    }
 }
 
+# ----- 檢查 root 權限 -----
+if [ "$(id -u)" != "0" ]; then
+    error_exit "請使用 root 權限執行此腳本！"
+fi
+
 # ----- 詢問使用者是否自訂網路設定 -----
-read -p "是否自訂 vmbr1 IP 位址和橋接介面卡名稱？ (y/N，預設 N): " CUSTOM_NETWORK
+read -p "是否自訂橋接介面卡名稱？ (y/N，預設 N): " CUSTOM_NETWORK # 移除 vmbr1 IP 自訂選項，僅保留橋接介面自訂
 if [[ "$CUSTOM_NETWORK" =~ ^[yY] ]]; then
-    read -p "請輸入 vmbr1 IP 位址 (例如 192.168.1.2/24): " VMBR1_IP_CUSTOM
-    if [ -n "$VMBR1_IP_CUSTOM" ]; then
-        VMBR1_IP="$VMBR1_IP_CUSTOM"
-    fi
+    # 移除 VMBR1_IP 自訂選項
     read -p "請輸入要橋接的網路介面卡名稱 (例如 enp1s1): " BRIDGE_IFACE_CUSTOM
     if [ -n "$BRIDGE_IFACE_CUSTOM" ]; then
         DEFAULT_BRIDGE_IFACE="$BRIDGE_IFACE_CUSTOM"
@@ -74,7 +76,7 @@ BRIDGE_IFACE="$DEFAULT_BRIDGE_IFACE" # 確保橋接介面名稱使用變數
 # ----- 檢查並建立 vmbr1 -----
 if ! ip link show vmbr1 &>/dev/null; then
     echo "建立 vmbr1 橋接..."
-    echo -e "\nauto vmbr1\niface vmbr1 inet static\n  address $VMBR1_IP\n  bridge-ports $BRIDGE_IFACE\n  bridge-stp off\n  bridge-fd 0" >> /etc/network/interfaces
+    echo -e "\nauto vmbr1\niface vmbr1 inet manual\n  bridge-ports $BRIDGE_IFACE\n  bridge-stp off\n  bridge-fd 0" >> /etc/network/interfaces # 修改為 inet manual，移除 address 設定
     ifup vmbr1
     check_command_status $? "ifup vmbr1"
 else
