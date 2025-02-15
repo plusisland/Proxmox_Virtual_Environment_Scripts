@@ -1,91 +1,38 @@
-## Proxmox VE 常用設定與安裝腳本
+# GitHub Experiment Overview | GitHub 實驗概述
 
-本指南提供一系列腳本，協助您快速設定 Proxmox VE 環境，設定非訂閱套件庫及 OpenWrt 安裝。
+This GitHub repository serves as a personal experimental platform.  
+The main objective is to verify whether individuals without programming knowledge can create correct and executable code with the assistance of AI.
 
-### 0\. 安裝假訂閱合約
+本 GitHub 為個人實驗場，主要目標是驗證不懂程式語法的人，是否能透過人工智慧的協助建立正確可執行的程式碼。
 
-此腳本將設定 Proxmox VE 的技術支援合約。
+## Experiment Process | 實驗流程
 
-```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/install_fake_subscription.sh)"
-```
+1. Each Bash shell script will include a reference link in the second line that explains the source of the code.
+2. The goal is to feed reference materials into ChatGPT to generate the code.
+3. Code optimization and reduction will be performed using **Gemini**.
+4. Finally, **xAI** will be used for code review.
+5. The code will undergo physical testing on actual hardware to verify its feasibility and correctness.
 
-### 1\. 設定非訂閱套件庫
+每個 Bash shell 第二行附上此段程式碼參考的說明網址，實驗目標為將參考資料餵給 ChatGPT 建立程式碼，使用 **Gemini** 做程式碼優化與刪減，最後使用 **xAI** 做審核。程式碼會經過實機驗證其可行性與正確性。
 
-此腳本將設定 Proxmox VE 的非訂閱套件庫，允許您安裝社群維護的軟體包。
+## Hardware Setup | 硬體環境
 
-```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/no_subscription_repositories.sh)"
-```
+The hardware environment used for this experiment is the **R2 POE with POE Function**.  
+You can find more information about it [here](https://www.ikoolcore.com/en-tw/products/ikoolcore-r2-poe-firewall).
 
-### 2\. 設定 PCIe Passthrough
+使用的硬體環境為 **R2 POE with POE Function**，更多資訊請參見[官方網站](https://www.ikoolcore.com/en-tw/products/ikoolcore-r2-poe-firewall)。
 
-此腳本將設定 PCIe Passthrough。
+Additionally, we are utilizing a **MiniPCIe M.2 E-Key WiFi Module** model **MediaTek MT7922** as part of the environment setup.
 
-```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/plusisland/Proxmox_Virtual_Environment_Scripts/refs/heads/main/set_pcie_passthrough.sh)"
-```
+並藉由 MiniPCIe 配備 **M.2 E-Key WiFi Module 型號為 MediaTek MT7922** 作為環境。
 
-**OpenWrt 安裝完成後，請按照以下步驟進行設定：**
+## Code Comparison | 程式碼比較
 
-1.  **更新軟體列表：**
+The code generated will be compared with the community-maintained **Proxmox VE Helper-Scripts** to assess whether the goal is achieved and if the resulting code is more efficient and optimized.
 
-    ```bash
-    opkg update
-    ```
+程式碼會與社群維護的 **Proxmox VE Helper-Scripts** 程式碼做比較，檢查是否達成目標且能生成更高效能精簡的程式碼。
 
-2.  **安裝中文化：**
+For official environment use, you should opt for the community-maintained code.  
+You can find the community scripts [here](https://community-scripts.github.io/ProxmoxVE/scripts).
 
-    ```bash
-    opkg install luci-i18n-base-zh-tw
-    ```
-
-3.  **安裝 PCIe 相關工具：**
-
-    ```bash
-    opkg install pciutils
-    ```
-
-4.  **安裝無線網卡驅動 (以 mt7921e 為例，請根據您的無線網卡型號選擇)：**
-
-    ```bash
-    opkg install kmod-mt7921e
-    ```
-
-5.  **安裝藍牙韌體 (若您的無線網卡支援藍牙功能，以 mt7922bt 為例)：**
-
-    ```bash
-    opkg install mt7922bt-firmware
-    ```
-
-6.  **安裝無線網卡韌體 (若您的無線網卡支援藍牙功能，以 mt7922 為例)：**
-
-    ```bash
-    opkg install kmod-mt7922-firmware
-    ```
-
-7.  **安裝 wpa\_supplicant (用於連接 WiFi 網路)：**
-
-    ```bash
-    opkg install wpa-supplicant
-    ```
-
-8.  **安裝 hostapd (用於建立 WiFi 熱點)：**
-
-    ```bash
-    opkg install hostapd
-    ```
-
-**注意事項：**
-
-  * 請確保您的 Proxmox VE 環境已正確設定，例如網路設定、磁碟空間等。
-  * 在執行腳本前，建議先備份相關設定，以防發生意外。
-  * OpenWrt 安裝完成後，請根據您的需求進行詳細設定，例如網路配置、防火牆設定等。
-  * 安裝無線網卡驅動和韌體時，請務必根據您的無線網卡型號選擇正確的軟體包。
-
-**其他資源：**
-
-  * Proxmox VE 官方網站：[https://www.proxmox.com/proxmox-ve](https://www.google.com/url?sa=E&source=gmail&q=https://www.proxmox.com/proxmox-ve)
-  * OpenWrt 官方網站：[https://openwrt.org/](https://www.google.com/url?sa=E&source=gmail&q=https://openwrt.org/)
-
-希望本指南能幫助您順利設定 Proxmox VE 環境！
+如果您要正式環境使用，您應該選擇社群維護的程式碼，請參見[社群腳本](https://community-scripts.github.io/ProxmoxVE/scripts)。
