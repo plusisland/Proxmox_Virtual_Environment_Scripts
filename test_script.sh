@@ -1,35 +1,49 @@
 #!/usr/bin/env bash
-https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
+# https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 
-# 假設您已經下載了OpenWRT EFI圖像至Proxmox主機的當前目錄
-OPENWRT_IMG="openwrt-23.05.3-x86-64-generic-ext4-combined-efi.img.gz"
-VMID=100  # 請根據您的需要更改VM ID
-STORAGEID="local-lvm"  # 更改為您的儲存ID
+response=$(curl -s https://openwrt.org)
+stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
+URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
+wget -q --show-progress $URL
+VMID=100
 VMNAME="OpenWrt"
-MEMORY=256  # MB
+STORAGEID=$(cat /etc/pve/storage.cfg | grep "content images" -B 3 | awk 'NR==1{print $2}')
 CORES=1
-PCI_ADDR="0000:01:00.0"  # 請根據您的PCIe網卡的地址調整
-echo $PCI_ADDR > /sys/bus/pci/drivers/vfio-pci/new_id
-
-# 解壓縮圖像
-gzip -d $OPENWRT_IMG
-
-# 調整圖像大小（這裡我們設為2GB，但您可以根據需要調整）
-qemu-img resize -f raw ${OPENWRT_IMG%.gz} 512MB
-
-# 創建VM，但不啟動它
-qm create $VMID --name $VMNAME --machine q35 --bios ovmf --memory $MEMORY --cores $CORES --net0 virtio,bridge=vmbr0
-
-# 導入OpenWRT圖像作為VM的磁碟
-qm importdisk $VMID ${OPENWRT_IMG%.gz} $STORAGEID
-
-# 編輯硬體配置，將導入的磁碟附加為主要啟動裝置
-qm set $VMID --scsihw virtio-scsi-pci
+MEMORY=256
+PCIID="0000:05:00.0"
+gunzip openwrt-*.img.gz
+qemu-img resize -f raw openwrt-*.imgz 512M
+qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw virtio-scsi-single --cores $CORES --cpu host --memory $MEMORY --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1 --onboot 1
+qm importdisk $VMID openwrt-*.img $STORAGEID
 qm set $VMID --scsi0 $STORAGEID:vm-$VMID-disk-0
-
-# 設置啟動順序
 qm set $VMID --boot order=scsi0
-qm set $VMID --hostpci0 $PCI_ADDR,pcie=1,x-vga=1
+qm set $VMID --hostpci0 $PCIID,pcie=1
+qm start $VMID
+sleep 15
 
-# 清理臨時文件（可選）
-rm ${OPENWRT_IMG%.gz}
+IPADDR="192.168.2.1"
+NETMASK="255.255.255.0"
+
+# 進入虛擬機的終端並進行設定
+qm terminal $VMID << EOF
+# 設定 LAN 介面的 IP 地址和子網掩碼
+uci delete network.@device[0]
+uci set network.wan=interface
+uci set network.wan.device=eth0
+uci set network.wan.proto=dhcp
+uci delete network.lan
+uci set network.lan=interface
+uci set network.lan.device=eth1
+uci set network.lan.proto=static
+uci set network.lan.ipaddr='$IPADDR'
+uci set network.lan.netmask='$NETMASK'
+uci commit network
+
+# 重啟網路服務
+/etc/init.d/network restart
+
+# 顯示當前網路配置
+ifconfig
+EOF
+
+rm -rf openwrt-*.img.gz
