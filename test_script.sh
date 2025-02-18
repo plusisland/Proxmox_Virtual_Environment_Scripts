@@ -39,34 +39,74 @@ sleep 15
 
 # 發送命令到虛擬機的函數
 function send_line_to_vm() {
-  declare -A key_map=(
-    [" "]="spc" ["-"]="minus" ["="]="equal" [","]="comma" ["."]="dot" ["/"]="slash"
-    ["'"]="apostrophe" [";"]="semicolon" ["\\"]="backslash" ["`"]="grave_accent"
-    ["["]="bracket_left" ["]"]="bracket_right" ["_"]="shift-minus" ["+"]="shift-equal"
-    ["?"]="shift-slash" ["<"]="shift-comma" [">"]="shift-dot" ['"']="shift-apostrophe"
-    [":"]="shift-semicolon" ["|"]="shift-backslash" ["~"]="shift-grave_accent"
-    ["{"]="shift-bracket_left" ["}"]="shift-bracket_right"
-    ["A"]="shift-a" ["B"]="shift-b" ["C"]="shift-c" ["D"]="shift-d" ["E"]="shift-e"
-    ["F"]="shift-f" ["G"]="shift-g" ["H"]="shift-h" ["I"]="shift-i" ["J"]="shift-j"
-    ["K"]="shift-k" ["L"]="shift-l" ["M"]="shift-m" ["N"]="shift-n" ["O"]="shift-o"
-    ["P"]="shift-p" ["Q"]="shift-q" ["R"]="shift-r" ["S"]="shift-s" ["T"]="shift-t"
-    ["U"]="shift-u" ["V"]="shift-v" ["W"]="shift-w" ["X"]="shift-x" ["Y"]="shift-y"
-    ["Z"]="shift-z" ["!"]="shift-1" ["@"]="shift-2" ["#"]="shift-3" ["$"]="shift-4"
-    ["%"]="shift-5" ["^"]="shift-6" ["&"]="shift-7" ["*"]="shift-8" ["("]="shift-9"
-    [")"]="shift-0"
-  )
-
-  # 處理每個字符並發送對應的鍵
   for ((i = 0; i < ${#1}; i++)); do
     character=${1:i:1}
-    if [[ -n "${key_map[$character]}" ]]; then
-      qm sendkey $VMID "${key_map[$character]}"
-    else
-      qm sendkey $VMID "$character"
-    fi
+    case $character in
+    " ") character="spc" ;;
+    "-") character="minus" ;;
+    "=") character="equal" ;;
+    ",") character="comma" ;;
+    ".") character="dot" ;;
+    "/") character="slash" ;;
+    "'") character="apostrophe" ;;
+    ";") character="semicolon" ;;
+    '\') character="backslash" ;;
+    '`') character="grave_accent" ;;
+    "[") character="bracket_left" ;;
+    "]") character="bracket_right" ;;
+    "_") character="shift-minus" ;;
+    "+") character="shift-equal" ;;
+    "?") character="shift-slash" ;;
+    "<") character="shift-comma" ;;
+    ">") character="shift-dot" ;;
+    '"') character="shift-apostrophe" ;;
+    ":") character="shift-semicolon" ;;
+    "|") character="shift-backslash" ;;
+    "~") character="shift-grave_accent" ;;
+    "{") character="shift-bracket_left" ;;
+    "}") character="shift-bracket_right" ;;
+    "A") character="shift-a" ;;
+    "B") character="shift-b" ;;
+    "C") character="shift-c" ;;
+    "D") character="shift-d" ;;
+    "E") character="shift-e" ;;
+    "F") character="shift-f" ;;
+    "G") character="shift-g" ;;
+    "H") character="shift-h" ;;
+    "I") character="shift-i" ;;
+    "J") character="shift-j" ;;
+    "K") character="shift-k" ;;
+    "L") character="shift-l" ;;
+    "M") character="shift-m" ;;
+    "N") character="shift-n" ;;
+    "O") character="shift-o" ;;
+    "P") character="shift-p" ;;
+    "Q") character="shift-q" ;;
+    "R") character="shift-r" ;;
+    "S") character="shift-s" ;;
+    "T") character="shift-t" ;;
+    "U") character="shift-u" ;;
+    "V") character="shift-v" ;;
+    "W") character="shift-w" ;;
+    "X") character="shift-x" ;;
+    "Y") character="shift-y" ;;
+    "Z") character="shift-z" ;;
+    "!") character="shift-1" ;;
+    "@") character="shift-2" ;;
+    "#") character="shift-3" ;;
+    '$') character="shift-4" ;;
+    "%") character="shift-5" ;;
+    "^") character="shift-6" ;;
+    "&") character="shift-7" ;;
+    "*") character="shift-8" ;;
+    "(") character="shift-9" ;;
+    ")") character="shift-0" ;;
+    esac
+    qm sendkey $VMID "$character"
   done
-  qm sendkey $VMID ret  # 按下 "Enter" 鍵
+  qm sendkey $VMID ret
 }
+
 
 # 設置網絡配置
 send_line_to_vm "uci delete network.@device[0]"
