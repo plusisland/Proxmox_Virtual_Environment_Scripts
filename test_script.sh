@@ -109,6 +109,7 @@ function send_line_to_vm() {
 
 
 # 設置網絡配置
+send_line_to_vm ""
 send_line_to_vm "uci delete network.@device[0]"
 send_line_to_vm "uci set network.wan=interface"
 send_line_to_vm "uci set network.wan.device=eth0"
