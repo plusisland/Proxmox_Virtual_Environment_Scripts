@@ -35,7 +35,7 @@ qm set $VMID --hostpci0 $PCIID,pcie=1
 
 # 啟動虛擬機
 qm start $VMID
-sleep 15
+sleep 20
 
 # 發送命令到虛擬機的函數
 function send_line_to_vm() {
@@ -109,7 +109,6 @@ function send_line_to_vm() {
 
 
 # 設置網絡配置
-send_line_to_vm ""
 send_line_to_vm "uci delete network.@device[0]"
 send_line_to_vm "uci set network.wan=interface"
 send_line_to_vm "uci set network.wan.device=eth0"
@@ -121,12 +120,138 @@ send_line_to_vm "uci set network.lan.proto=static"
 send_line_to_vm "uci set network.lan.ipaddr=192.168.2.1"
 send_line_to_vm "uci set network.lan.netmask=255.255.255.0"
 send_line_to_vm "uci commit"
+send_line_to_vm "service network reload"
 
 # 安裝所需的軟體包
 send_line_to_vm "opkg update"
-send_line_to_vm "opkg install qemu-ga"
-send_line_to_vm "opkg install kmod-mt7921e kmod-mt7922-firmware"
+send_line_to_vm "opkg install luci-i18n-base-zh-tw"
+send_line_to_vm "opkg install pciutils"
+send_line_to_vm "opkg install kmod-mt7921e"
+send_line_to_vm "opkg install mt7922bt-firmware"
+send_line_to_vm "opkg install kmod-mt7922-firmware"
 send_line_to_vm "opkg install wpad"
+send_line_to_vm "opkg install qemu-ga"
+send_line_to_vm "/etc/init.d/qemu-ga enable"
+send_line_to_vm "reboot"
 
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img.gz
+==========================================================================
+自訂shutdown命令
+使用ssh登陸到Openwrt
+
+# 生成一个shutdown文件
+touch /sbin/shutdown
+# 赋予执行权限
+chmod +x /sbin/shutdown
+# 写入内容
+nano /sbin/shutdown
+在文字中寫入以下內容
+
+#!/bin/ash
+
+# 默认使用关机命令
+ACTION="poweroff"
+# 默认倒数3s秒后执行命令
+TIME="3s"
+
+# 获取shutdown参数
+# Qemu-GA 默认调用 -h -P +0的方式
+while getopts "s:t:rkhncpP" OPT; do
+    case $OPT in
+        s|t)
+        TIME="${OPTARG:-"now"}"
+        ;;
+
+        r)
+        ACTION="reboot"
+        ;;
+
+        k)
+        ACTION="warning"
+        ;;
+
+        h)
+        ACTION="halt"
+        ;;
+
+        n)
+        ACTION="poweroff"
+        ;;
+
+        c)
+        echo "Cancel shutdown, but not support the Openwrt!" > /dev/kmsg
+        ACTION="stop"
+        ;;
+
+        p|P)
+        ACTION="poweroff"
+        ;;
+
+        \?)
+        args=$@
+        echo "Unrecognized arguments received: $args" > /dev/kmsg
+        exit 1
+        ;;
+        esac
+done
+
+echo "Shutdown Script: Set ACTION to $ACTION" > /dev/kmsg
+echo "Shutdown Script: Set TIME to $TIME" > /dev/kmsg
+
+time=`echo $TIME | tr -cd "[0-9]"`
+
+timeUnit=`echo $TIME | tr -cd "[A-Za-z]"`
+if [ ! -n "$timeUnit"  ]; then
+    timeUnit="s"
+fi
+
+if [ "$timeUnit" = "s" ]; then
+    sleeptime=$time
+
+elif [ "$timeUnit" = "m" ]; then
+    sleeptime=$(($time*60));
+
+elif [ "$timeUnit" = "h" ]; then
+    sleeptime=$(($time*60*60));
+
+elif [ "$timeUnit" = "d" ]; then
+    sleeptime=$(($time*60*60*24));
+
+elif [ "$timeUnit" = "y" ]; then
+    sleeptime=$(($time*60*60*24*365));
+
+else
+    echo "Invalid arguments unit: $TIME" > /dev/kmsg
+    exit 1
+fi
+
+echo "Shutdown Script: Waiting $TIME" > /dev/kmsg
+
+while [ $sleeptime -gt 0 ];do
+    if [ "$sleeptime" = "1" ]; then
+        echo "Going Script!" > /dev/kmsg
+    else
+        echo "Please wait $(($sleeptime - 1))s" > /dev/kmsg
+    fi
+    sleep 1
+    sleeptime=$(($sleeptime - 1))
+done
+
+if [ $# == 0 ]; then
+    echo "Shutting down without any params" > /dev/kmsg
+    /sbin/poweroff
+
+elif [ "$ACTION" = "poweroff" ]; then
+    /sbin/poweroff;
+
+elif [ "$ACTION" = "reboot" ]; then
+    /sbin/reboot
+
+elif [ "$ACTION" = "warning" ]; then
+    echo "关机警告" > /dev/kmsg
+    /sbin/poweroff;
+
+elif [ "$ACTION" = "halt" ]; then
+    /sbin/halt
+fi
