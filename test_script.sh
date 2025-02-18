@@ -120,7 +120,7 @@ send_line_to_vm "uci set network.lan.device=eth1"
 send_line_to_vm "uci set network.lan.proto=static"
 send_line_to_vm "uci set network.lan.ipaddr=192.168.2.1"
 send_line_to_vm "uci set network.lan.netmask=255.255.255.0"
-send_line_to_vm "uci commit network"
+send_line_to_vm "uci commit"
 
 # 安裝所需的軟體包
 send_line_to_vm "opkg update"
