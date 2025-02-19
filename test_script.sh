@@ -40,12 +40,12 @@ else
     echo "expect 已安装"
 fi
 
+# 获取未使用的循环设备
+loop_device=$(losetup -f)
+
 # 创建并执行 expect 脚本来自动化 parted 的交互操作
 expect <<EOF
-spawn losetup -f
-expect "Allocated loop device"
-set loop_device $expect_out(buffer)
-spawn losetup \$loop_device openwrt-*.img
+spawn losetup $loop_device openwrt-*.img
 expect eof
 
 spawn parted \$loop_device print
