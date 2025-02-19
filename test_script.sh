@@ -22,6 +22,8 @@ PCIID="0000:05:00.0"
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
 qemu-img resize -f raw openwrt-*.img 512M
+
+# 安裝 parted 和 expect
 if ! command -v parted &> /dev/null
 then
     echo "parted 未安装，正在安装..."
@@ -30,12 +32,37 @@ else
     echo "parted 已安装"
 fi
 
-loop_device=$(losetup -f)
-losetup $loop_device openwrt-*.img
-echo -e "OK\nFix" | parted --pretend-input-tty "$loop_device" print
-parted "$loop_device" resizepart 2 100%
-parted "$loop_device" print
-losetup -d $loop_device
+if ! command -v expect &> /dev/null
+then
+    echo "expect 未安装，正在安装..."
+    apt install -y expect
+else
+    echo "expect 已安装"
+fi
+
+# 创建并执行 expect 脚本来自动化 parted 的交互操作
+expect <<EOF
+spawn losetup -f
+expect "Allocated loop device"
+set loop_device $expect_out(buffer)
+spawn losetup \$loop_device openwrt-*.img
+expect eof
+
+spawn parted \$loop_device print
+expect {
+    -re ".*OK.*" { send "OK\r" }
+    -re ".*Fix.*" { send "Fix\r" }
+}
+
+spawn parted \$loop_device resizepart 2 100%
+expect eof
+
+spawn parted \$loop_device print
+expect eof
+
+spawn losetup -d \$loop_device
+expect eof
+EOF
 
 # 創建虛擬機
 qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw virtio-scsi-single \
@@ -63,7 +90,7 @@ function send_line_to_vm() {
     ["'"]="apostrophe"
     [";"]="semicolon"
     ["\\"]="backslash"
-    ["`"]="grave_accent"
+    ["\`"]="grave_accent"
     ["["]="bracket_left"
     ["]"]="bracket_right"
     ["_"]="shift-minus"
