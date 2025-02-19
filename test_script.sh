@@ -154,7 +154,9 @@ send_line_to_vm "opkg install kmod-mt7922-firmware"
 send_line_to_vm "opkg install wpad"
 send_line_to_vm "opkg install qemu-ga"
 send_line_to_vm "opkg install acpid"
-send_line_to_vm "reboot"
+send_line_to_vm "halt"
 
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img
+qm set $VMID --agent 1
+qm start $VMID
