@@ -22,6 +22,20 @@ PCIID="0000:05:00.0"
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
 qemu-img resize -f raw openwrt-*.img 512M
+if ! command -v parted &> /dev/null
+then
+    echo "parted 未安装，正在安装..."
+    apt install -y parted
+else
+    echo "parted 已安装"
+fi
+
+loop_device=$(losetup -f)
+losetup $loop_device openwrt-*.img
+echo -e "OK\nFix" | parted --pretend-input-tty "$loop_device" print
+parted "$loop_device" resizepart 2 100%
+parted "$loop_device" print
+losetup -d $loop_device
 
 # 創建虛擬機
 qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw virtio-scsi-single \
