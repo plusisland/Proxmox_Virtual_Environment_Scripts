@@ -8,7 +8,7 @@ stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt 
 # 下載 OpenWrt 映像的 URL
 URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
 
-# 下載 OpenWrt 映像
+# 下載 OpenWrt 映像黨
 wget -q --show-progress $URL
 
 # 虛擬機配置
@@ -23,7 +23,7 @@ PCIID="0000:05:00.0"
 gunzip openwrt-*.img.gz
 qemu-img resize -f raw openwrt-*.img 512M
 
-# 安裝 parted 和 expect
+# 安裝 parted
 if ! command -v parted &> /dev/null
 then
     echo "parted 未安装，正在安装..."
@@ -32,13 +32,13 @@ else
     echo "parted 已安装"
 fi
 
-# 获取未使用的循环设备
+# 取得未使用磁碟裝置位置
 loop_device=$(losetup -f)
-# 将映像文件挂载到循环设备
+# 掛載映像
 losetup $loop_device openwrt-*.img
-# 扩展第二个分区到剩余空间
+# 擴展第二磁區
 parted -f -s "$loop_device" resizepart 2 100%
-# 解除挂载循环设备
+# 解除掛載磁碟
 losetup -d $loop_device
 
 # 創建虛擬機
@@ -56,27 +56,70 @@ qm start $VMID
 
 # 發送命令到虛擬機的函數
 function send_line_to_vm() {
-  declare -A char_map=([" "] = "spc" ["-"] = "minus" ["="] = "equal" [","] = "comma" ["."] = "dot" ["/"] = "slash" ["'"] = "apostrophe" [";"] = "semicolon" ["\\"] = "backslash" ["\`"] = "grave_accent" ["["] = "bracket_left" ["]"] = "bracket_right" ["_"] = "shift-minus" ["+"] = "shift-equal" ["?"] = "shift-slash" ["<"] = "shift-comma" [">"] = "shift-dot" ['"'] = "shift-apostrophe" [":"] = "shift-semicolon" ["|"] = "shift-backslash" ["~"] = "shift-grave_accent" ["{"] = "shift-bracket_left" ["}"] = "shift-bracket_right" ["!"] = "shift-1" ["@"] = "shift-2" ["#"] = "shift-3" ["$"] = "shift-4" ["%"] = "shift-5" ["^"] = "shift-6" ["&"] = "shift-7" ["*"] = "shift-8" ["("] = "shift-9" [")"] = "shift-0"
-  )
-
   for ((i = 0; i < ${#1}; i++)); do
     character=${1:i:1}
-
-    if [[ "$character" =~ [a-z] ]]; then  # 判斷是否為小寫字母
-      key_name="$character"
-    elif [[ "$character" =~ [A-Z] ]]; then  # 判斷是否為大寫字母
-      key_name="shift-${character,,}"  # 轉換為小寫並加上 shift- 前綴
-    elif [[ -v char_map["$character"] ]]; then # 檢查是否在關聯陣列中
-      key_name="${char_map["$character"]}"
-    else
-      key_name="$character" # 預設情況，直接使用字元本身 (例如數字)
-      # key_name="" # 或者，如果遇到未定義字元，可以設定為空字串或跳過
-      # continue # 或者，跳過未定義字元
-    fi
-
-    if [[ -n "$key_name" ]]; then # 確保 key_name 不是空字串才發送
-      qm sendkey $VMID "$key_name"
-    fi
+    case $character in
+    " ") character="spc" ;;
+    "-") character="minus" ;;
+    "=") character="equal" ;;
+    ",") character="comma" ;;
+    ".") character="dot" ;;
+    "/") character="slash" ;;
+    "'") character="apostrophe" ;;
+    ";") character="semicolon" ;;
+    '\') character="backslash" ;;
+    '`') character="grave_accent" ;;
+    "[") character="bracket_left" ;;
+    "]") character="bracket_right" ;;
+    "_") character="shift-minus" ;;
+    "+") character="shift-equal" ;;
+    "?") character="shift-slash" ;;
+    "<") character="shift-comma" ;;
+    ">") character="shift-dot" ;;
+    '"') character="shift-apostrophe" ;;
+    ":") character="shift-semicolon" ;;
+    "|") character="shift-backslash" ;;
+    "~") character="shift-grave_accent" ;;
+    "{") character="shift-bracket_left" ;;
+    "}") character="shift-bracket_right" ;;
+    "A") character="shift-a" ;;
+    "B") character="shift-b" ;;
+    "C") character="shift-c" ;;
+    "D") character="shift-d" ;;
+    "E") character="shift-e" ;;
+    "F") character="shift-f" ;;
+    "G") character="shift-g" ;;
+    "H") character="shift-h" ;;
+    "I") character="shift-i" ;;
+    "J") character="shift-j" ;;
+    "K") character="shift-k" ;;
+    "L") character="shift-l" ;;
+    "M") character="shift-m" ;;
+    "N") character="shift-n" ;;
+    "O") character="shift-o" ;;
+    "P") character="shift-p" ;;
+    "Q") character="shift-q" ;;
+    "R") character="shift-r" ;;
+    "S") character="shift-s" ;;
+    "T") character="shift-t" ;;
+    "U") character="shift-u" ;;
+    "V") character="shift-v" ;;
+    "W") character="shift-w" ;;
+    "X") character="shift=x" ;;
+    "Y") character="shift-y" ;;
+    "Z") character="shift-z" ;;
+    "!") character="shift-1" ;;
+    "@") character="shift-2" ;;
+    "#") character="shift-3" ;;
+    '$') character="shift-4" ;;
+    "%") character="shift-5" ;;
+    "^") character="shift-6" ;;
+    "&") character="shift-7" ;;
+    "*") character="shift-8" ;;
+    "(") character="shift-9" ;;
+    ")") character="shift-0" ;;
+    esac
+    qm sendkey $VMID "$character"
   done
   qm sendkey $VMID ret
 }
@@ -85,7 +128,7 @@ function send_line_to_vm() {
 sleep 20
 
 # 設置網絡配置
-send_line_to_vm ""
+send_line_to_vm " "
 send_line_to_vm "uci delete network.@device[0]"
 send_line_to_vm "uci set network.wan=interface"
 send_line_to_vm "uci set network.wan.device=eth0"
