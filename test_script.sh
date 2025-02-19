@@ -56,42 +56,7 @@ qm start $VMID
 
 # 發送命令到虛擬機的函數
 function send_line_to_vm() {
-  declare -A char_map  # 宣告關聯陣列
-  # 定義字元映射
-  char_map=(
-    [" "] = "spc"
-    ["-"] = "minus"
-    ["="] = "equal"
-    [","] = "comma"
-    ["."] = "dot"
-    ["/"] = "slash"
-    ["'"] = "apostrophe"
-    [";"] = "semicolon"
-    ["\\"] = "backslash"  # 注意反斜線需要跳脫
-    ["\`"] = "grave_accent" # 注意反引號需要跳脫
-    ["["] = "bracket_left"
-    ["]"] = "bracket_right"
-    ["_"] = "shift-minus"
-    ["+"] = "shift-equal"
-    ["?"] = "shift-slash"
-    ["<"] = "shift-comma"
-    [">"] = "shift-dot"
-    ['"'] = "shift-apostrophe" # 注意雙引號需要跳脫
-    [":"] = "shift-semicolon"
-    ["|"] = "shift-backslash"
-    ["~"] = "shift-grave_accent"
-    ["{"] = "shift-bracket_left"
-    ["}"] = "shift-bracket_right"
-    ["!"] = "shift-1"
-    ["@"] = "shift-2"
-    ["#"] = "shift-3"
-    ["$"] = "shift-4"
-    ["%"] = "shift-5"
-    ["^"] = "shift-6"
-    ["&"] = "shift-7"
-    ["*"] = "shift-8"
-    ["("] = "shift-9"
-    [")"] = "shift-0"
+  declare -A char_map=([" "] = "spc" ["-"] = "minus" ["="] = "equal" [","] = "comma" ["."] = "dot" ["/"] = "slash" ["'"] = "apostrophe" [";"] = "semicolon" ["\\"] = "backslash" ["\`"] = "grave_accent" ["["] = "bracket_left" ["]"] = "bracket_right" ["_"] = "shift-minus" ["+"] = "shift-equal" ["?"] = "shift-slash" ["<"] = "shift-comma" [">"] = "shift-dot" ['"'] = "shift-apostrophe" [":"] = "shift-semicolon" ["|"] = "shift-backslash" ["~"] = "shift-grave_accent" ["{"] = "shift-bracket_left" ["}"] = "shift-bracket_right" ["!"] = "shift-1" ["@"] = "shift-2" ["#"] = "shift-3" ["$"] = "shift-4" ["%"] = "shift-5" ["^"] = "shift-6" ["&"] = "shift-7" ["*"] = "shift-8" ["("] = "shift-9" [")"] = "shift-0"
   )
 
   for ((i = 0; i < ${#1}; i++)); do
