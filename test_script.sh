@@ -54,108 +54,124 @@ qm set $VMID --hostpci0 $PCIID,pcie=1
 # 啟動虛擬機
 qm start $VMID
 
-# 發送命令到虛擬機的函數
-function send_line_to_vm() {
-  for ((i = 0; i < ${#1}; i++)); do
-    character=${1:i:1}
-    case $character in
-    " ") character="spc" ;;
-    "-") character="minus" ;;
-    "=") character="equal" ;;
-    ",") character="comma" ;;
-    ".") character="dot" ;;
-    "/") character="slash" ;;
-    "'") character="apostrophe" ;;
-    ";") character="semicolon" ;;
-    '\') character="backslash" ;;
-    '`') character="grave_accent" ;;
-    "[") character="bracket_left" ;;
-    "]") character="bracket_right" ;;
-    "_") character="shift-minus" ;;
-    "+") character="shift-equal" ;;
-    "?") character="shift-slash" ;;
-    "<") character="shift-comma" ;;
-    ">") character="shift-dot" ;;
-    '"') character="shift-apostrophe" ;;
-    ":") character="shift-semicolon" ;;
-    "|") character="shift-backslash" ;;
-    "~") character="shift-grave_accent" ;;
-    "{") character="shift-bracket_left" ;;
-    "}") character="shift-bracket_right" ;;
-    "A") character="shift-a" ;;
-    "B") character="shift-b" ;;
-    "C") character="shift-c" ;;
-    "D") character="shift-d" ;;
-    "E") character="shift-e" ;;
-    "F") character="shift-f" ;;
-    "G") character="shift-g" ;;
-    "H") character="shift-h" ;;
-    "I") character="shift-i" ;;
-    "J") character="shift-j" ;;
-    "K") character="shift-k" ;;
-    "L") character="shift-l" ;;
-    "M") character="shift-m" ;;
-    "N") character="shift-n" ;;
-    "O") character="shift-o" ;;
-    "P") character="shift-p" ;;
-    "Q") character="shift-q" ;;
-    "R") character="shift-r" ;;
-    "S") character="shift-s" ;;
-    "T") character="shift-t" ;;
-    "U") character="shift-u" ;;
-    "V") character="shift-v" ;;
-    "W") character="shift-w" ;;
-    "X") character="shift-x" ;;
-    "Y") character="shift-y" ;;
-    "Z") character="shift-z" ;;
-    "!") character="shift-1" ;;
-    "@") character="shift-2" ;;
-    "#") character="shift-3" ;;
-    '$') character="shift-4" ;;
-    "%") character="shift-5" ;;
-    "^") character="shift-6" ;;
-    "&") character="shift-7" ;;
-    "*") character="shift-8" ;;
-    "(") character="shift-9" ;;
-    ")") character="shift-0" ;;
-    esac
-    qm sendkey $VMID "$character"
-  done
-  qm sendkey $VMID ret
+# 這個函數會根據QEMU的鍵盤編碼將文字轉換為sendkey命令
+qm_sendline() {
+    local text="$1"     # 要轉換的文字
+    # 創建一個鍵位對應表，去掉了小寫字母和數字
+    declare -A key_map=(
+        ['A']='shift-a'
+        ['B']='shift-b'
+        ['C']='shift-c'
+        ['D']='shift-d'
+        ['E']='shift-e'
+        ['F']='shift-f'
+        ['G']='shift-g'
+        ['H']='shift-h'
+        ['I']='shift-i'
+        ['J']='shift-j'
+        ['K']='shift-k'
+        ['L']='shift-l'
+        ['M']='shift-m'
+        ['N']='shift-n'
+        ['O']='shift-o'
+        ['P']='shift-p'
+        ['Q']='shift-q'
+        ['R']='shift-r'
+        ['S']='shift-s'
+        ['T']='shift-t'
+        ['U']='shift-u'
+        ['V']='shift-v'
+        ['W']='shift-w'
+        ['X']='shift-x'
+        ['Y']='shift-y'
+        ['Z']='shift-z'
+        [' ']='spc'
+        ['`']='grave_accent'
+        ['~']='shift-grave_accent'
+        ['!']='shift-1'
+        ['@']='shift-2'
+        ['#']='shift-3'
+        ['$']='shift-4'
+        ['%']='shift-5'
+        ['^']='shift-6'
+        ['&']='shift-7'
+        ['*']='shift-8'
+        ['(']='shift-9'
+        [')']='shift-0'
+        ['-']='minus'
+        ['_']='shift-minus'
+        ['=']='equal'
+        ['+']='shift-equal'
+        ['[']='bracket_left'
+        ['{']='shift-bracket_left'
+        [']']='bracket_right'
+        ['}']='shift-bracket_right'
+        ['\']='backslash'
+        ['|']='shift-backslash'
+        [';']='semicolon'
+        [':']='shift-semicolon'
+        ["'"]='apostrophe'
+        ['"']='shift-apostrophe'
+        [',']='comma'
+        ['<']='shift-comma'
+        ['.']='dot'
+        ['>']='shift-dot'
+        ["/"]='slash'
+        ['?']='shift-slash'
+    )
+
+    # 遍歷輸入文字，並發送對應的sendkey命令
+    for (( i=0; i<${#text}; i++ )); do
+        char=${text:$i:1}
+        
+        # 如果是小寫字母或數字，直接發送對應按鍵
+        if [[ $char =~ [a-z0-9] ]]; then
+            qm sendkey $VMID $char
+        elif [[ -v key_map[$char] ]]; then
+            key=${key_map[$char]}
+            qm sendkey $VMID $key
+        else
+            echo "未找到對應的鍵: $char"
+        fi
+    done
+	qm sendkey $VMID ret
 }
+
+# 用法示例
+#send_keys 100 "Aa \`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?"
 
 # 等待虛擬機開機完成
 sleep 20
 
 # 設置網絡配置
-send_line_to_vm ""
-send_line_to_vm "uci delete network.@device[0]"
-send_line_to_vm "uci set network.wan=interface"
-send_line_to_vm "uci set network.wan.device=eth0"
-send_line_to_vm "uci set network.wan.proto=dhcp"
-send_line_to_vm "uci delete network.lan"
-send_line_to_vm "uci set network.lan=interface"
-send_line_to_vm "uci set network.lan.device=eth1"
-send_line_to_vm "uci set network.lan.proto=static"
-send_line_to_vm "uci set network.lan.ipaddr='192.168.2.100'"
-send_line_to_vm "uci set network.lan.netmask=255.255.255.0"
-send_line_to_vm "uci set network.lan.gateway='192.168.2.1'"
-send_line_to_vm "uci set network.lan.dns='8.8.8.8'"
-send_line_to_vm "uci commit network"
-send_line_to_vm "service network reload"
+qm_sendline ""
+qm_sendline "uci delete network.@device[0]"
+qm_sendline "uci set network.wan=interface"
+qm_sendline "uci set network.wan.device=eth0"
+qm_sendline "uci set network.wan.proto=dhcp"
+qm_sendline "uci delete network.lan"
+qm_sendline "uci set network.lan=interface"
+qm_sendline "uci set network.lan.device=eth1"
+qm_sendline "uci set network.lan.proto=static"
+qm_sendline "uci set network.lan.ipaddr='192.168.2.100'"
+qm_sendline "uci set network.lan.netmask=255.255.255.0"
+qm_sendline "uci set network.lan.gateway='192.168.2.1'"
+qm_sendline "uci set network.lan.dns='8.8.8.8'"
+qm_sendline "uci commit network"
+qm_sendline "service network reload"
 
 # 安裝所需的軟體包
-send_line_to_vm "opkg update"
-send_line_to_vm "opkg install luci-i18n-base-zh-tw"
-send_line_to_vm "opkg install pciutils"
-send_line_to_vm "opkg install kmod-mt7921e"
-send_line_to_vm "opkg install kmod-mt7922-firmware"
-send_line_to_vm "opkg install wpad"
-send_line_to_vm "opkg install bluez-daemon"
-send_line_to_vm "opkg install mt7922bt-firmware"
-send_line_to_vm "opkg install qemu-ga"
-send_line_to_vm "opkg install acpid"
-send_line_to_vm "reboot"
+qm_sendline "opkg update"
+qm_sendline "opkg install luci-i18n-base-zh-tw"
+qm_sendline "opkg install pciutils"
+qm_sendline "opkg install kmod-mt7921e"
+qm_sendline "opkg install kmod-mt7922-firmware"
+qm_sendline "opkg install wpad"
+qm_sendline "opkg install bluez-daemon"
+qm_sendline "opkg install mt7922bt-firmware"
+qm_sendline "opkg install qemu-ga"
+qm_sendline "opkg install acpid"
+qm_sendline "reboot"
 
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img
