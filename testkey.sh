@@ -34,7 +34,7 @@ send_keys() {
         ['Y']='shift-y'
         ['Z']='shift-z'
         [' ']='spc'
-        ['\`']='grave_accent'
+        ['`']='grave_accent'
         ['~']='shift-grave_accent'
         ['!']='shift-1'
         ['@']='shift-2'
@@ -54,12 +54,12 @@ send_keys() {
         ['{']='shift-bracket_left'
         [']']='bracket_right'
         ['}']='shift-bracket_right'
-        ['\\']='backslash'
+        ['\']='backslash'
         ['|']='shift-backslash'
         [';']='semicolon'
         [':']='shift-semicolon'
         ["'"]='apostrophe'
-        ['\"']='shift-apostrophe'
+        ['"']='shift-apostrophe'
         ['\n']='enter'
         [',']='comma'
         ['<']='shift-comma'
@@ -86,4 +86,4 @@ send_keys() {
 }
 
 # 用法示例
-send_keys 100 "Hello World!!@\`~,./;'[]\\<>?:'\"{}|+=-_"
+send_keys 100 "Hello World!@\`~,./;'[]\\<>?:'\"{}|+=-_"
