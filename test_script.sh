@@ -102,6 +102,7 @@ qm_sendline() {
         ['_']='shift-minus'
         ['=']='equal'
         ['+']='shift-equal'
+	['\t']='tab'
         ['[']='bracket_left'
         ['{']='shift-bracket_left'
         [']']='bracket_right'
@@ -112,6 +113,7 @@ qm_sendline() {
         [':']='shift-semicolon'
         ["'"]='apostrophe'
         ['"']='shift-apostrophe'
+	['\n']='ret'
         [',']='comma'
         ['<']='shift-comma'
         ['.']='dot'
@@ -134,44 +136,47 @@ qm_sendline() {
             echo "未找到對應的鍵: $char"
         fi
     done
-	qm sendkey $VMID ret
 }
 
 # 用法示例
 #send_keys 100 "Aa \`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?"
 
 # 等待虛擬機開機完成
+echo "等待虛擬機開機完成"
 sleep 20
 
 # 設置網絡配置
-qm_sendline ""
-qm_sendline "uci delete network.@device[0]"
-qm_sendline "uci set network.wan=interface"
-qm_sendline "uci set network.wan.device=eth0"
-qm_sendline "uci set network.wan.proto=dhcp"
-qm_sendline "uci delete network.lan"
-qm_sendline "uci set network.lan=interface"
-qm_sendline "uci set network.lan.device=eth1"
-qm_sendline "uci set network.lan.proto=static"
-qm_sendline "uci set network.lan.ipaddr='192.168.2.100'"
-qm_sendline "uci set network.lan.netmask=255.255.255.0"
-qm_sendline "uci set network.lan.gateway='192.168.2.1'"
-qm_sendline "uci set network.lan.dns='8.8.8.8'"
-qm_sendline "uci commit network"
-qm_sendline "service network reload"
+qm_sendline "\n"
+echo "設定WAN"
+qm_sendline "uci delete network.@device[0]\n"
+qm_sendline "uci set network.wan=interface\n"
+qm_sendline "uci set network.wan.device=eth0\n"
+qm_sendline "uci set network.wan.proto=dhcp\n"
+echo "設定LAN"
+qm_sendline "uci delete network.lan\n"
+qm_sendline "uci set network.lan=interface\n"
+qm_sendline "uci set network.lan.device=eth1\n"
+qm_sendline "uci set network.lan.proto=static\n"
+qm_sendline "uci set network.lan.ipaddr='192.168.2.100'\n"
+qm_sendline "uci set network.lan.netmask=255.255.255.0\n"
+qm_sendline "uci set network.lan.gateway='192.168.2.1'\n"
+qm_sendline "uci set network.lan.dns='8.8.8.8'\n"
+qm_sendline "uci commit network\n"
+qm_sendline "service network reload\n"
 
 # 安裝所需的軟體包
-qm_sendline "opkg update"
-qm_sendline "opkg install luci-i18n-base-zh-tw"
-qm_sendline "opkg install pciutils"
-qm_sendline "opkg install kmod-mt7921e"
-qm_sendline "opkg install kmod-mt7922-firmware"
-qm_sendline "opkg install wpad"
-qm_sendline "opkg install bluez-daemon"
-qm_sendline "opkg install mt7922bt-firmware"
-qm_sendline "opkg install qemu-ga"
-qm_sendline "opkg install acpid"
-qm_sendline "reboot"
+echo "安裝套件"
+qm_sendline "opkg update\n"
+qm_sendline "opkg install luci-i18n-base-zh-tw\n"
+qm_sendline "opkg install pciutils\n"
+qm_sendline "opkg install kmod-mt7921e\n"
+qm_sendline "opkg install kmod-mt7922-firmware\n"
+qm_sendline "opkg install wpad\n"
+qm_sendline "opkg install bluez-daemon\n"
+qm_sendline "opkg install mt7922bt-firmware\n"
+qm_sendline "opkg install qemu-ga\n"
+qm_sendline "opkg install acpid\n"
+qm_sendline "reboot\n"
 
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img
