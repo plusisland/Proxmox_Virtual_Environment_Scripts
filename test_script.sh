@@ -102,7 +102,6 @@ qm_sendline() {
         ['_']='shift-minus'
         ['=']='equal'
         ['+']='shift-equal'
-	['\t']='tab'
         ['[']='bracket_left'
         ['{']='shift-bracket_left'
         [']']='bracket_right'
@@ -113,7 +112,6 @@ qm_sendline() {
         [':']='shift-semicolon'
         ["'"]='apostrophe'
         ['"']='shift-apostrophe'
-	['\n']='ret'
         [',']='comma'
         ['<']='shift-comma'
         ['.']='dot'
@@ -125,17 +123,14 @@ qm_sendline() {
     # 遍歷輸入文字，並發送對應的sendkey命令
     for (( i=0; i<${#text}; i++ )); do
         char=${text:$i:1}
-        
-        # 如果是小寫字母或數字，直接發送對應按鍵
-        if [[ $char =~ [a-z0-9] ]]; then
-            qm sendkey $VMID $char
-        elif [[ -v key_map[$char] ]]; then
+        if [[ -v key_map[$char] ]]; then
             key=${key_map[$char]}
             qm sendkey $VMID $key
         else
-            echo "未找到對應的鍵: $char"
+            qm sendkey $VMID $char
         fi
     done
+    qm sendkey $VMID ret
 }
 
 # 用法示例
