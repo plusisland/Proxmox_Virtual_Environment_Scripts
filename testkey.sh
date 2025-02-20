@@ -33,11 +33,9 @@ send_keys() {
         ['X']='shift+x'
         ['Y']='shift+y'
         ['Z']='shift+z'
-        ['\n']='enter'
-        [' ']='space'
-        ['\t']='tab'
-        [',']='comma'
-        ['.']='period'
+        [' ']='spc'
+        ['`']='grave_accent'
+        ['~']='shift+grave_accent'
         ['!']='shift+1'
         ['@']='shift+2'
         ['#']='shift+3'
@@ -52,22 +50,23 @@ send_keys() {
         ['_']='shift+minus'
         ['=']='equal'
         ['+']='shift+equal'
-        ['[']='leftbracket'
-        [']']='rightbracket'
-        ['{']='shift+leftbracket'
-        ['}']='shift+rightbracket'
+        ['[']='bracket_left'
+        ['{']='shift+bracket_left'
+        [']']='bracket_right'
+        ['}']='shift+bracket_right'
         ['\\']='backslash'
         ['|']='shift+backslash'
         [';']='semicolon'
         [':']='shift+semicolon'
         ["'"]='apostrophe'
         ['"']='shift+apostrophe'
+        ['\n']='enter'
+        [',']='comma'
+        ['<']='shift+comma'
+        ['.']='dot'
+        ['>']='shift+dot'
         ["/"]='slash'
         ['?']='shift+slash'
-        ['`']='backtick'
-        ['~']='shift+backtick'
-        ['<']='comma'
-        ['>']='period'
     )
 
     # 遍歷輸入文字，並發送對應的sendkey命令
@@ -87,4 +86,4 @@ send_keys() {
 }
 
 # 用法示例
-send_keys 100 "Hello World!@.[]'123"
+# send_keys 100 "Hello World!!@`~,./;'[]\<>?:"{}|+=-_"
