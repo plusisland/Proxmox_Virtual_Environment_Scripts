@@ -60,7 +60,6 @@ send_keys() {
         [':']='shift-semicolon'
         ["'"]='apostrophe'
         ['"']='shift-apostrophe'
-        ['\n']='enter'
         [',']='comma'
         ['<']='shift-comma'
         ['.']='dot'
@@ -83,7 +82,8 @@ send_keys() {
             echo "未找到對應的鍵: $char"
         fi
     done
+	qm sendkey $vmid ret
 }
 
 # 用法示例
-send_keys 100 "Aa \`~!@#$%^&*()-_=+[{]}\\|;:\'\",<.>/?\n"
+send_keys 100 "Aa \`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?"
