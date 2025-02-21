@@ -153,23 +153,28 @@ qm_sendline "uci set network.wan.proto=dhcp"
 echo "刪除默認 LAN 配置"
 qm_sendline "uci delete network.lan"
 
+echo "建立橋接將eth1 eth2 eth3接在一起"
+qm_sendline "uci set network.br0=interface"
+qm_sendline "uci set network.br0.type=bridge"
+qm_sendline "uci set network.br0.ifname='eth1 eth2 eth3'"
+
 echo "設定 LAN 接口並設置為靜態 IP 配置"
 qm_sendline "uci set network.lan=interface"
-qm_sendline "uci set network.lan.device='eth1 eth2 eth3'"  # 讓 eth1, eth2, eth3 成為同一 LAN 接口
+qm_sendline "uci set network.lan.device='br0'"
 qm_sendline "uci set network.lan.proto=static"
 qm_sendline "uci set network.lan.ipaddr=192.168.2.1"   # 設定 LAN IP 地址
 qm_sendline "uci set network.lan.netmask=255.255.255.0" # 設定子網掩碼
 qm_sendline "uci set network.lan.dhcp='1'"  # 啟用 DHCP 伺服器
 
-echo "提交配置"
-qm_sendline "uci commit network"
-
 qm_sendline "uci set dhcp.lan.start='100'"      # DHCP 地址範圍從 192.168.2.100 開始
 qm_sendline "uci set dhcp.lan.limit='100'"      # DHCP 分配 101 個 IP 地址 (192.168.2.100 到 192.168.2.200)
 qm_sendline "uci set dhcp.lan.leasetime='24h'"  # DHCP 租期為 24 小時
 
-echo "提交配置"
+echo "提交DHCP設定"
 qm_sendline "uci commit dhcp"
+
+echo "提交網路設定"
+qm_sendline "uci commit network"
 
 # 安裝所需的軟體包
 echo "安裝中文化"
@@ -191,7 +196,7 @@ qm_sendline "opkg install qemu-ga"
 qm_sendline "opkg install acpid"
 
 echo "啟用無線網卡 wlan0"
-qm_sendline "uci set wireless.radio0.disabled='1'"  # 啟用無線
+qm_sendline "uci set wireless.radio0.disabled='0'"  # 啟用無線
 
 echo "設定 wlan0 為 LAN 網絡的一部分"
 qm_sendline "uci set wireless.@wifi-iface[0].network='lan'"  # WLAN 連接到 LAN
@@ -204,33 +209,8 @@ qm_sendline "uci set wireless.@wifi-iface[0].key='0928486656'"  # 設置無線�
 echo "提交無線設置"
 qm_sendline "uci commit wireless"
 
-echo "允許 LAN 設備訪問 WAN"
-qm_sendline "uci add firewall.zone"
-qm_sendline "uci set firewall.@zone[-1].name='lan'"
-qm_sendline "uci set firewall.@zone[-1].network='lan'"
-qm_sendline "uci set firewall.@zone[-1].input='ACCEPT'"
-qm_sendline "uci set firewall.@zone[-1].output='ACCEPT'"
-qm_sendline "uci set firewall.@zone[-1].forward='ACCEPT'"
-
-echo "允許 WLAN 設備訪問 WAN"
-qm_sendline "uci add firewall.zone"
-qm_sendline "uci set firewall.@zone[-1].name='wlan'"
-qm_sendline "uci set firewall.@zone[-1].network='wlan0'"
-qm_sendline "uci set firewall.@zone[-1].input='ACCEPT'"
-qm_sendline "uci set firewall.@zone[-1].output='ACCEPT'"
-qm_sendline "uci set firewall.@zone[-1].forward='ACCEPT'"
-
-echo "設置 LAN 到 WAN 的轉發"
-qm_sendline "uci add firewall.forwarding"
-qm_sendline "uci set firewall.@forwarding[-1].src='lan'"
-qm_sendline "uci set firewall.@forwarding[-1].dest='wan'"
-
-echo "提交防火牆設定"
-qm_sendline "uci commit firewall"
-
 echo "重載網路設定"
 qm_sendline "service network reload"
-qm_sendline "service firewall reload"
 
 echo "重啟虛擬機"
 qm_sendline "reboot"
