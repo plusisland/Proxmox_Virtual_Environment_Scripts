@@ -2,22 +2,23 @@
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 
 # 取得 OpenWrt 的最新穩定版本
-response=$(curl -s https://openwrt.org)
-stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
-
+#response=$(curl -s https://openwrt.org)
+#stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
 # 下載 OpenWrt 映像的 URL
-URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
-
+#URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
 # 下載 OpenWrt 映像黨
-wget -q --show-progress $URL
+#wget -q --show-progress $URL
+wget -q --show-progress $(curl -s https://openwrt.org | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/https:\/\/downloads.openwrt.org\/releases\/\1\/targets\/x86\/64\/openwrt-\1-x86-64-generic-ext4-combined-efi.img.gz/p')
 
 # 虛擬機配置
 VMID=100
 VMNAME="OpenWrt"
-STORAGEID=$(cat /etc/pve/storage.cfg | grep "content images" -B 3 | awk 'NR==1{print $2}')
+#STORAGEID=$(cat /etc/pve/storage.cfg | grep "content images" -B 3 | awk 'NR==1{print $2}')
+STORAGEID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $2}')
 CORES=1
 MEMORY=256
-PCIID="0000:05:00.0"
+#PCIID="0000:05:00.0"
+PCIID=$(lspci | grep Network | awk '{print $1}')
 
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
@@ -34,10 +35,16 @@ fi
 
 # 取得未使用磁碟裝置位置
 loop_device=$(losetup -f)
+
 # 掛載映像
 losetup $loop_device openwrt-*.img
+
 # 擴展第二磁區
 parted -f -s "$loop_device" resizepart 2 100%
+
+# 擴展檔案系統
+resize2fs ${loop_device}p2
+
 # 解除掛載磁碟
 losetup -d $loop_device
 
@@ -47,9 +54,7 @@ qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw vi
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VMID openwrt-*.img $STORAGEID
-qm set $VMID --scsi0 $STORAGEID:vm-$VMID-disk-0
-qm set $VMID --boot order=scsi0
-qm set $VMID --hostpci0 $PCIID,pcie=1
+qm set $VMID --scsi0 $STORAGEID:vm-$VMID-disk-0 --boot order=scsi0 --hostpci0 $PCIID,pcie=1
 
 # 啟動虛擬機
 qm start $VMID
@@ -142,11 +147,13 @@ sleep 20
 
 # 設置網絡配置
 qm_sendline ""
+
 echo "設定WAN"
 qm_sendline "uci delete network.@device[0]"
 qm_sendline "uci set network.wan=interface"
 qm_sendline "uci set network.wan.device=eth0"
 qm_sendline "uci set network.wan.proto=dhcp"
+
 echo "設定LAN"
 qm_sendline "uci delete network.lan"
 qm_sendline "uci set network.lan=interface"
@@ -158,7 +165,7 @@ qm_sendline "uci commit network"
 qm_sendline "service network reload"
 
 # 安裝所需的軟體包
-echo "安裝套件"
+echo "安裝中文化"
 qm_sendline "opkg update"
 qm_sendline "opkg install luci-i18n-base-zh-tw"
 echo "安裝無線網卡"
