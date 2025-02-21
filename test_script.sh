@@ -153,25 +153,12 @@ qm_sendline "uci set network.wan.proto=dhcp"
 echo "刪除默認 LAN 配置"
 qm_sendline "uci delete network.lan"
 
-echo "建立橋接將eth1 eth2 eth3接在一起"
-qm_sendline "uci set network.br0=interface"
-qm_sendline "uci set network.br0.type=bridge"
-qm_sendline "uci set network.br0.ifname='eth1 eth2 eth3'"
-
 echo "設定 LAN 接口並設置為靜態 IP 配置"
 qm_sendline "uci set network.lan=interface"
 qm_sendline "uci set network.lan.device='eth1'"
 qm_sendline "uci set network.lan.proto=static"
-qm_sendline "uci set network.lan.ipaddr=192.168.2.1"   # 設定 LAN IP 地址
-qm_sendline "uci set network.lan.netmask=255.255.255.0" # 設定子網掩碼
-qm_sendline "uci set network.lan.dhcp='1'"  # 啟用 DHCP 伺服器
-
-qm_sendline "uci set dhcp.lan.start='100'"      # DHCP 地址範圍從 192.168.2.100 開始
-qm_sendline "uci set dhcp.lan.limit='100'"      # DHCP 分配 101 個 IP 地址 (192.168.2.100 到 192.168.2.200)
-qm_sendline "uci set dhcp.lan.leasetime='24h'"  # DHCP 租期為 24 小時
-
-echo "提交DHCP設定"
-qm_sendline "uci commit dhcp"
+qm_sendline "uci set network.lan.ipaddr=192.168.2.1"
+qm_sendline "uci set network.lan.netmask=255.255.255.0"
 
 echo "提交網路設定"
 qm_sendline "uci commit network"
