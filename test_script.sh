@@ -160,7 +160,7 @@ qm_sendline "uci set network.br0.ifname='eth1 eth2 eth3'"
 
 echo "設定 LAN 接口並設置為靜態 IP 配置"
 qm_sendline "uci set network.lan=interface"
-qm_sendline "uci set network.lan.device='br0'"
+qm_sendline "uci set network.lan.device='eth1'"
 qm_sendline "uci set network.lan.proto=static"
 qm_sendline "uci set network.lan.ipaddr=192.168.2.1"   # 設定 LAN IP 地址
 qm_sendline "uci set network.lan.netmask=255.255.255.0" # 設定子網掩碼
