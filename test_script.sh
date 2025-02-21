@@ -144,62 +144,48 @@ qm_sendline ""
 
 echo "刪除默認 WAN 配置"
 qm_sendline "uci delete network.@device[0]"
-
-echo "設定 WAN 接口為 eth0"
+echo "設定 eth0 作為 WAN 接口，並設置它自動獲取 IP（使用 DHCP）。"
 qm_sendline "uci set network.wan=interface"
-qm_sendline "uci set network.wan.device=eth0"
+qm_sendline "uci set network.wan.ifname=eth0"
 qm_sendline "uci set network.wan.proto=dhcp"
-
-echo "刪除默認 LAN 配置"
-qm_sendline "uci delete network.lan"
-
-echo "設定 LAN 接口並設置為靜態 IP 配置"
+echo "設定 eth1, eth2, eth3 為 LAN 接口，並設定為靜態 IP 配置。這些接口都會屬於同一個子網，並將 IP 設置為 192.168.2.x 範圍，並且設定路由器管理 IP 為 192.168.2.1。"
 qm_sendline "uci set network.lan=interface"
-qm_sendline "uci set network.lan.device='eth1'"
+qm_sendline "uci set network.lan.type=bridge"
+qm_sendline "uci set network.lan.ifname=eth1 eth2 eth3"
 qm_sendline "uci set network.lan.proto=static"
 qm_sendline "uci set network.lan.ipaddr=192.168.2.1"
 qm_sendline "uci set network.lan.netmask=255.255.255.0"
-
-echo "提交網路設定"
-qm_sendline "uci commit network"
-
-# 安裝所需的軟體包
-echo "安裝中文化"
+echo "設置 DHCP 服務，使其在 192.168.2.100 開始自動分配 IP 地址，並且分配範圍為 192.168.2.100 至 192.168.2.199。"
+qm_sendline "uci set dhcp.lan=dhcp"
+qm_sendline "uci set dhcp.lan.interface=lan"
+qm_sendline "uci set dhcp.lan.start=100"
+qm_sendline "uci set dhcp.lan.limit=100"
+qm_sendline "uci set dhcp.lan.leasetime=12h"
+echo "保存配置並重新啟動網絡服務，使更改生效。"
+qm_sendline "uci commit"
+qm_sendline "service network restart"
 qm_sendline "opkg update"
 qm_sendline "opkg install luci-i18n-base-zh-tw"
-
-echo "安裝無線網卡"
 qm_sendline "opkg install pciutils"
 qm_sendline "opkg install kmod-mt7921e"
 qm_sendline "opkg install kmod-mt7922-firmware"
 qm_sendline "opkg install wpad-openssl"
-
-echo "安裝藍芽"
 qm_sendline "opkg install bluez-daemon"
 qm_sendline "opkg install mt7922bt-firmware"
-
-echo "安裝關機程序"
 qm_sendline "opkg install qemu-ga"
 qm_sendline "opkg install acpid"
-
-echo "啟用無線網卡 wlan0"
-qm_sendline "uci set wireless.radio0.disabled='0'"  # 啟用無線
-
-echo "設定 wlan0 為 LAN 網絡的一部分"
-qm_sendline "uci set wireless.@wifi-iface[0].network='lan'"  # WLAN 連接到 LAN
-
-echo "設置無線網路名稱 (SSID)，密碼，和加密方式"
-qm_sendline "uci set wireless.@wifi-iface[0].ssid='OpenWrt'"  # 設置 SSID 名稱
-qm_sendline "uci set wireless.@wifi-iface[0].encryption='psk2'"  # 設置加密方式 (WPA2)
-qm_sendline "uci set wireless.@wifi-iface[0].key='0928486656'"  # 設置無線網絡密碼
-
-echo "提交無線設置"
+qm_sendline "uci set wireless.radio0.disabled=0"
+qm_sendline "uci set wireless.radio0.channel=auto"
+qm_sendline "uci set wireless.radio0.htmode=HE80"
+qm_sendline "uci set wireless.radio0.country=TW"
+qm_sendline "uci set wireless.radio0.hwmode=11a"
+qm_sendline "uci set wireless.default_radio0.network=lan"
+qm_sendline "uci set wireless.default_radio0.mode=ap"
+qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+qm_sendline "uci set wireless.default_radio0.encryption=sae"
+qm_sendline "uci set wireless.default_radio0.key=open1234"
 qm_sendline "uci commit wireless"
-
-echo "重載網路設定"
 qm_sendline "service network reload"
-
-echo "重啟虛擬機"
 qm_sendline "reboot"
 
 # 清理下載的 OpenWrt 映像文件
