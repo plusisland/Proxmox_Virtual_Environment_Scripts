@@ -2,22 +2,19 @@
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 
 # 取得 OpenWrt 的最新穩定版本
-#response=$(curl -s https://openwrt.org)
-#stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
+response=$(curl -s https://openwrt.org)
+stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
 # 下載 OpenWrt 映像的 URL
-#URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
+URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
 # 下載 OpenWrt 映像黨
-#wget -q --show-progress $URL
-wget -q --show-progress $(curl -s https://openwrt.org | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/https:\/\/downloads.openwrt.org\/releases\/\1\/targets\/x86\/64\/openwrt-\1-x86-64-generic-ext4-combined-efi.img.gz/p')
+wget -q --show-progress $URL
 
 # 虛擬機配置
 VMID=100
 VMNAME="OpenWrt"
-#STORAGEID=$(cat /etc/pve/storage.cfg | grep "content images" -B 3 | awk 'NR==1{print $2}')
 STORAGEID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $2}')
 CORES=1
 MEMORY=256
-#PCIID="0000:05:00.0"
 PCIID=$(lspci | grep Network | awk '{print $1}')
 
 # 解壓並調整磁碟映像大小
@@ -38,19 +35,16 @@ loop_device=$(losetup -f)
 
 # 掛載映像
 losetup $loop_device openwrt-*.img
-
 # 擴展第二磁區
 parted -f -s "$loop_device" resizepart 2 100%
-
 # 擴展檔案系統
 resize2fs ${loop_device}p2
-
 # 解除掛載磁碟
 losetup -d $loop_device
 
 # 創建虛擬機
 qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw virtio-scsi-single \
-  --cores $CORES --cpu host --memory $MEMORY --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1 --onboot 1
+  --cores $CORES --cpu host --memory $MEMORY --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1 --net2 virtio,bridge=vmbr2 --net3 virtio,bridge=vmbr3 --onboot 1
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VMID openwrt-*.img $STORAGEID
@@ -154,7 +148,7 @@ qm_sendline "uci delete network.@device[0]"
 echo "設定 WAN 接口為 eth0"
 qm_sendline "uci set network.wan=interface"
 qm_sendline "uci set network.wan.device=eth0"
-qm_sendline "uci set network.wan.proto=dhcp"  # 使 WAN 透過 DHCP 獲得 IP 地址
+qm_sendline "uci set network.wan.proto=dhcp"
 
 echo "刪除默認 LAN 配置"
 qm_sendline "uci delete network.lan"
@@ -171,8 +165,8 @@ echo "提交配置"
 qm_sendline "uci commit network"
 
 qm_sendline "uci set dhcp.lan.start='100'"      # DHCP 地址範圍從 192.168.2.100 開始
-qm_sendline "uci set dhcp.lan.limit='101'"      # DHCP 分配 101 個 IP 地址 (192.168.2.100 到 192.168.2.200)
-qm_sendline "uci set dhcp.lan.leasetime='12h'"  # DHCP 租期為 12 小時
+qm_sendline "uci set dhcp.lan.limit='100'"      # DHCP 分配 101 個 IP 地址 (192.168.2.100 到 192.168.2.200)
+qm_sendline "uci set dhcp.lan.leasetime='24h'"  # DHCP 租期為 24 小時
 
 echo "提交配置"
 qm_sendline "uci commit dhcp"
@@ -197,15 +191,15 @@ qm_sendline "opkg install qemu-ga"
 qm_sendline "opkg install acpid"
 
 echo "啟用無線網卡 wlan0"
-qm_sendline "uci set wireless.radio0.disabled='0'"  # 啟用無線
+qm_sendline "uci set wireless.radio0.disabled='1'"  # 啟用無線
 
 echo "設定 wlan0 為 LAN 網絡的一部分"
 qm_sendline "uci set wireless.@wifi-iface[0].network='lan'"  # WLAN 連接到 LAN
 
 echo "設置無線網路名稱 (SSID)，密碼，和加密方式"
-qm_sendline "uci set wireless.@wifi-iface[0].ssid='MyWiFi'"  # 設置 SSID 名稱
+qm_sendline "uci set wireless.@wifi-iface[0].ssid='OpenWrt'"  # 設置 SSID 名稱
 qm_sendline "uci set wireless.@wifi-iface[0].encryption='psk2'"  # 設置加密方式 (WPA2)
-qm_sendline "uci set wireless.@wifi-iface[0].key='your_password'"  # 設置無線網絡密碼
+qm_sendline "uci set wireless.@wifi-iface[0].key='0928486656'"  # 設置無線網絡密碼
 
 echo "提交無線設置"
 qm_sendline "uci commit wireless"
