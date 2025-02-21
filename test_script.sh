@@ -186,6 +186,7 @@ qm_sendline "uci set wireless.default_radio0.encryption=sae"
 qm_sendline "uci set wireless.default_radio0.key=open1234"
 qm_sendline "uci commit wireless"
 qm_sendline "service network reload"
+qm_sendline "echo \"sleep 10 && wifi\" >> /etc/rc.local"
 qm_sendline "reboot"
 
 # 清理下載的 OpenWrt 映像文件
