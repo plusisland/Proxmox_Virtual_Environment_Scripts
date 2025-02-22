@@ -210,7 +210,6 @@ echo "設定 eth1, eth2, eth3 為 LAN 接口，這些接口都會屬於同一個
 qm_sendline "uci set network.lan.type=bridge"
 qm_sendline "uci set network.lan.ifname='eth1 eth2 eth3'"
 qm_sendline "uci commit network"
-qm_sendline "uci commit dhcp"
 qm_sendline "service network reload"
 echo "重啟虛擬機。"
 qm_sendline "reboot"
