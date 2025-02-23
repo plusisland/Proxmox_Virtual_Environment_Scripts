@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
+# https://github.com/kjames2001/OpenWRT-PVE-AP-MT7922
+# 為了網卡直通必須選用 q35 , VMOF 且包含 EFI 的映象檔，內建 EFI 磁碟區可建立可不建。建了只是為了避免沒 EFI 磁碟區警告，這邊選擇不建立。
+# 選i440fx , SeaBIOS 就不需要 EFI 版本，但是直通網路速度較差。
 
 # 取得 OpenWrt 的最新穩定版本
 response=$(curl -s https://openwrt.org)
@@ -15,7 +18,11 @@ VMNAME="OpenWrt"
 STORAGEID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $2}')
 CORES=1
 MEMORY=256
+# 藍芽走USB
+#USBID=$(lsusb | grep Wireless | awk '{print $6}')
+# WIFI走PCI
 PCIID=$(lspci | grep Network | awk '{print $1}')
+
 
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
@@ -62,6 +69,7 @@ qm importdisk $VMID openwrt-*.img $STORAGEID
 qm set $VMID \
   --scsi0 $STORAGEID:vm-$VMID-disk-0 \
   --boot order=scsi0 \
+#  --usb0 host=$USBID \
   --hostpci0 $PCIID,pcie=1
 
 # 清理下載的 OpenWrt 映像文件
@@ -183,9 +191,23 @@ sleep 3
 qm_sendline "opkg update"
 echo "等待套件清單更新"
 sleep 5
-qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl bluez-daemon mt7922bt-firmware acpid"
-# 藍芽驅動未支持 MT7922 放棄安裝
-#qm_sendline "opkg install qemu-ga bluez-daemon mt7922bt-firmware"
+# 安裝 wpad-openssl 就會自動安裝所有網路相依套件
+# 安裝 acpid 是為了讓 openwrt 支援接收虛擬發的關機指令
+# qemu-ga 不用裝，裝了只能從虛擬機控制面板看 IP，一樣不支援主控台複製貼上指令。且還會造成關機指令無效。
+qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl acpid"
+# https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路
+# 根據此篇方法查詢
+# https://sibsaidinblog-tw.blogspot.com/2016/09/bluetooth-obex.html 
+# UUID: Generic Attribute Profile (00001801-0000-1000-8000-00805f9b34fb)
+# UUID: Generic Access Profile    (00001800-0000-1000-8000-00805f9b34fb)
+# UUID: PnP Information           (00001200-0000-1000-8000-00805f9b34fb)
+# UUID: A/V Remote Control Target (0000110c-0000-1000-8000-00805f9b34fb)
+# UUID: A/V Remote Control        (0000110e-0000-1000-8000-00805f9b34fb)
+# UUID: Device Information        (0000180a-0000-1000-8000-00805f9b34fb)
+# 看來不支援 NAP
+#qm_sendline "opkg install bluez-daemon mt7922bt-firmware"
+# 安裝 bluez-daemon mt7922bt-firmware 只能做一般配對
+# 配對方法 bluetoothctl -----> scan on -----> trust -----> pair -----> connect
 echo "等待套件下載"
 sleep 30
 qm_sendline "uci set wireless.radio0.disabled=0"
