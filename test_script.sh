@@ -44,11 +44,18 @@ losetup -d $loop_device
 
 # 創建虛擬機
 qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw virtio-scsi-single \
-  --cores $CORES --cpu host --memory $MEMORY --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1 --net2 virtio,bridge=vmbr2 --net3 virtio,bridge=vmbr3 --onboot 1
+  --cores $CORES --cpu host --memory $MEMORY \
+  --net0 virtio,bridge=vmbr0 \
+  --net1 virtio,bridge=vmbr1 \
+  --net2 virtio,bridge=vmbr2 \
+  --net3 virtio,bridge=vmbr3 --onboot 1
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VMID openwrt-*.img $STORAGEID
 qm set $VMID --scsi0 $STORAGEID:vm-$VMID-disk-0 --boot order=scsi0 --hostpci0 $PCIID,pcie=1
+
+# 清理下載的 OpenWrt 映像文件
+rm -rf openwrt-*.img
 
 # 啟動虛擬機
 qm start $VMID
@@ -166,7 +173,9 @@ sleep 3
 qm_sendline "opkg update"
 echo "等待套件清單更新"
 sleep 5
-qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl bluez-daemon mt7922bt-firmware qemu-ga acpid"
+qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl bluez-daemon mt7922bt-firmware acpid"
+# 藍芽驅動未支持 MT7922 放棄安裝
+#qm_sendline "opkg install qemu-ga bluez-daemon mt7922bt-firmware"
 echo "等待套件下載"
 sleep 30
 qm_sendline "uci set wireless.radio0.disabled=0"
@@ -190,5 +199,3 @@ qm_sendline "opkg install luci-theme-argon.ipk"
 qm_sendline "rm -rf luci-theme-argon.ipk"
 echo "重啟虛擬機。"
 qm_sendline "reboot"
-# 清理下載的 OpenWrt 映像文件
-rm -rf openwrt-*.img
