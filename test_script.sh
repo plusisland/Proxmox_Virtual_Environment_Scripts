@@ -23,7 +23,6 @@ MEMORY=256
 # WIFI走PCI
 PCIID=$(lspci | grep Network | awk '{print $1}')
 
-
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
 qemu-img resize -f raw openwrt-*.img 512M
