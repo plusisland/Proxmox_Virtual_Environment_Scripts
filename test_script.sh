@@ -139,7 +139,6 @@ qm_sendline() {
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
 sleep 20
-
 # 輸入 enter 進入命令列
 qm_sendline ""
 qm_sendline "uci delete network.@device[0]"
@@ -187,6 +186,8 @@ qm_sendline "reboot"
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
 sleep 20
+# 輸入 enter 進入命令列
+qm_sendline ""
 qm_sendline "uci set network.lan.type=bridge"
 qm_sendline "uci set network.lan.ifname='eth1 eth2 eth3'"
 qm_sendline "uci set dhcp.lan.interface=lan"
