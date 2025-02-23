@@ -204,8 +204,8 @@ qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922
 # UUID: A/V Remote Control        (0000110e-0000-1000-8000-00805f9b34fb)
 # UUID: Device Information        (0000180a-0000-1000-8000-00805f9b34fb)
 # 看來不支援 NAP
-#qm_sendline "opkg install bluez-daemon mt7922bt-firmware"
-# 安裝 bluez-daemon mt7922bt-firmware 只能做一般配對
+#qm_sendline "opkg install kmod-usb2-pci bluez-daemon mt7922bt-firmware"
+# 安裝 kmod-usb2-pci bluez-daemon mt7922bt-firmware 只能做一般配對
 # 配對方法 bluetoothctl -----> scan on -----> trust -----> pair -----> connect
 echo "等待套件下載"
 sleep 30
