@@ -160,7 +160,7 @@ qm_sendline "uci commit network"
 qm_sendline "uci commit dhcp"
 qm_sendline "service network restart"
 echo "等待網路重啟"
-sleep 5
+sleep 20
 qm_sendline "opkg update"
 qm_sendline "opkg install luci-i18n-base-zh-tw"
 qm_sendline "opkg install pciutils"
