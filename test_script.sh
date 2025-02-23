@@ -184,19 +184,19 @@ qm_sendline "rm -rf luci-theme-argon.ipk"
 echo "重啟虛擬機。"
 qm_sendline "reboot"
 # 等待虛擬機開機完成
-echo "等待虛擬機開機完成"
-sleep 20
+#echo "等待虛擬機開機完成"
+#sleep 20
 # 輸入 enter 進入命令列
-qm_sendline ""
-qm_sendline "uci set network.lan.type=bridge"
-qm_sendline "uci set network.lan.ifname='eth1 eth2 eth3'"
-qm_sendline "uci set dhcp.lan.interface=lan"
-qm_sendline "uci set dhcp.lan=dhcp"
-qm_sendline "uci set dhcp.lan.start=100"
-qm_sendline "uci set dhcp.lan.limit=100"
-qm_sendline "uci set dhcp.lan.leasetime=12h"
-qm_sendline "uci commit network"
-qm_sendline "uci commit dhcp"
-qm_sendline "service network reload"
+#qm_sendline ""
+#qm_sendline "uci set network.lan.type=bridge"
+#qm_sendline "uci set network.lan.ifname='eth1 eth2 eth3'"
+#qm_sendline "uci set dhcp.lan.interface=lan"
+#qm_sendline "uci set dhcp.lan=dhcp"
+#qm_sendline "uci set dhcp.lan.start=100"
+#qm_sendline "uci set dhcp.lan.limit=100"
+#qm_sendline "uci set dhcp.lan.leasetime=12h"
+#qm_sendline "uci commit network"
+#qm_sendline "uci commit dhcp"
+#qm_sendline "service network reload"
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img
