@@ -32,7 +32,6 @@ fi
 
 # 取得未使用磁碟裝置位置
 loop_device=$(losetup -f)
-
 # 掛載映像
 losetup $loop_device openwrt-*.img
 # 擴展第二磁區
@@ -43,16 +42,27 @@ resize2fs ${loop_device}p2
 losetup -d $loop_device
 
 # 創建虛擬機
-qm create $VMID --name $VMNAME -ostype l26 --machine q35 --bios ovmf --scsihw virtio-scsi-single \
-  --cores $CORES --cpu host --memory $MEMORY \
+qm create $VMID \
+  --name $VMNAME \
+  -ostype l26 \
+  --machine q35 \
+  --bios ovmf \
+  --scsihw virtio-scsi-single \
+  --cores $CORES \
+  --cpu host \
+  --memory $MEMORY \
   --net0 virtio,bridge=vmbr0 \
   --net1 virtio,bridge=vmbr1 \
   --net2 virtio,bridge=vmbr2 \
-  --net3 virtio,bridge=vmbr3 --onboot 1
+  --net3 virtio,bridge=vmbr3 \
+  --onboot 1
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VMID openwrt-*.img $STORAGEID
-qm set $VMID --scsi0 $STORAGEID:vm-$VMID-disk-0 --boot order=scsi0 --hostpci0 $PCIID,pcie=1
+qm set $VMID \
+  --scsi0 $STORAGEID:vm-$VMID-disk-0 \
+  --boot order=scsi0 \
+  --hostpci0 $PCIID,pcie=1
 
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img
