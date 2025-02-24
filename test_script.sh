@@ -214,9 +214,7 @@ qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922
 echo "等待套件下載"
 sleep 30
 # 由於 MT7922 不支援 DBDC 所以只有 radio0 可以設定，2.4GHz/5GHz 只能擇一無法同時使用。最大頻寬無法設定最大值只能設定 80 MHz。
-# 應該先上 https://openwrt.org/packages/table/start 查有沒有驅動，MT7915 有 DBDC 都還比較好，沒事先做功課。
-# 現在 Intel AX210、Intel AX200 都有驅動了，早知道當初買 Intel 就好。RTL8822CE 也支援不過據說很爛，Intel 在主導的無線對 linux 支援好不到哪裡去。
-# 為了 wifi 2.4/5GHz 同名無縫切換應選 MT7915，不過也買不到就是了。買 Intel AX210 然後安裝驅動 kmod-iwlwifi 加安裝韌體 iwlwifi-firmware-ax210 就好。
+# 應該先上 https://openwrt.org/packages/table/start 查有沒有驅動，MT7915e 有 DBDC 都還比較好，沒事先做功課。
 qm_sendline "uci set wireless.radio0.disabled=0"
 qm_sendline "uci set wireless.radio0.channel=auto"
 qm_sendline "uci set wireless.radio0.htmode=HE80"
