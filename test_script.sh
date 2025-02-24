@@ -76,6 +76,7 @@ rm -rf openwrt-*.img
 # 啟動虛擬機
 qm start $VMID
 
+# https://gitlab.com/qemu-project/qemu/-/blob/master/pc-bios/keymaps/en-us
 # 這個函數會根據QEMU的鍵盤編碼將文字轉換為sendkey命令
 qm_sendline() {
     local text="$1"     # 要轉換的文字
