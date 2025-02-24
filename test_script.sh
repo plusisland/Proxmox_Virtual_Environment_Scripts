@@ -204,6 +204,7 @@ qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922
 # UUID: A/V Remote Control        (0000110e-0000-1000-8000-00805f9b34fb)
 # UUID: Device Information        (0000180a-0000-1000-8000-00805f9b34fb)
 # 看來不支援 NAP
+# 詳細教學 PDF 請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
 #qm_sendline "opkg install kmod-usb2-pci bluez-daemon mt7922bt-firmware"
 # https://openwrt.org/docs/guide-user/hardware/bluetooth/usb.bluetooth
 # 安裝 kmod-usb2-pci bluez-daemon mt7922bt-firmware 只能做一般配對
