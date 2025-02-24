@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 # https://github.com/kjames2001/OpenWRT-PVE-AP-MT7922
-# 為了網卡直通必須選用 q35 , VMOF 且包含 EFI 的映象檔，內建 EFI 磁碟區可建立可不建。建了只是為了避免沒 EFI 磁碟區警告，這邊選擇不建立。
-# 選i440fx , SeaBIOS 就不需要 EFI 版本，但是直通網路速度較差。
+# 為了網卡直通必須選用 q35 、 ovmf 且包含 EFI 的映象檔。不建立 EFI 磁碟區，建了只是為了顯示沒有 EFI 磁碟區警告。選 i440fx 、 SeaBIOS 就不需要 EFI 版本，但是直通網路速度較差。
 
 # 取得 OpenWrt 的最新穩定版本
 response=$(curl -s https://openwrt.org)
@@ -192,7 +191,7 @@ echo "等待套件清單更新"
 sleep 5
 # 安裝 wpad-openssl 就會自動安裝所有網路相依套件
 # 安裝 acpid 是為了讓 openwrt 支援接收虛擬發的關機指令
-# qemu-ga 不用裝，裝了只能從虛擬機控制面板看 IP，一樣不支援主控台複製貼上指令。且還會造成關機指令無效。
+# qemu-ga 不用裝，裝了只能從虛擬機控制面板看 IP，一樣不支援主控台複製貼上指令。且還會造成關機指令無效。qemu-keymaps 待測試
 qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl acpid"
 # https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路
 # 根據此篇方法查詢
