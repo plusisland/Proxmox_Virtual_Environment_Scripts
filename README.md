@@ -10,10 +10,10 @@ The main objective is to verify whether individuals without programming knowledg
 1. Each Bash shell script will include a reference link in the second line that explains the source of the code.
 2. The goal is to feed reference materials into ChatGPT to generate the code.
 3. Code optimization and reduction will be performed using **Gemini**.
-4. Finally, **xAI** will be used for code review.
+4. Finally, **Grok** will be used for code review.
 5. The code will undergo physical testing on actual hardware to verify its feasibility and correctness.
 
-每個 Bash shell 第二行附上此段程式碼參考的說明網址，實驗目標為將參考資料餵給 ChatGPT 建立程式碼，使用 **Gemini** 做程式碼優化與刪減，最後使用 **xAI** 做審核。程式碼會經過實機驗證其可行性與正確性。
+每個 Bash shell 第二行附上此段程式碼參考的說明網址，實驗目標為將參考資料餵給 ChatGPT 建立程式碼，使用 **Gemini** 做程式碼優化與刪減，最後使用 **Grok** 做審核。程式碼會經過實機驗證其可行性與正確性。
 
 ## Hardware Setup | 硬體環境
 
