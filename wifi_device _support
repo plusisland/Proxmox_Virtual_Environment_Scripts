@@ -1,0 +1,27 @@
+------------------------------------------------
+|  作業系統  |  最新版  |  基礎系統  |  核心版本  |
+------------------------------------------------
+|  Proxmox VE  |  8.3-1  |  Ubuntu  |  6.8  |  https://pve.proxmox.com/wiki/Proxmox_VE_Kernel https://ubuntu.com/kernel/lifecycle
+------------------------------------------------
+|  OpenWrt  |  24.1  |  Linux  |  6.6  |  https://openwrt.org/docs/techref/targets/kernelversions
+------------------------------------------------
+|  OPNsense  |  25.1  |  FreeBSD  |  14.2  |
+------------------------------------------------
+
+Wifi 無線網路卡支援查詢
+----------------------------------------------------------------------
+https://wireless.docs.kernel.org/en/latest/en/users/drivers/iwlwifi.html
+https://wireless.docs.kernel.org/en/latest/en/users/drivers/mediatek.html
+https://wireless.docs.kernel.org/en/latest/en/users/drivers/rtl819x.html
+----------------------------------------------------------------------
+https://openwrt.org/packages/table/start
+----------------------------------------------------------------------
+https://wiki.freebsd.org/WiFi/Iwlwifi/Chipsets
+https://wiki.freebsd.org/WiFi/Mt76
+https://wiki.freebsd.org/WiFi/Rtw88
+https://wiki.freebsd.org/WiFi/Rtw89
+----------------------------------------------------------------------
+
+要同時支援三個作業系統要買
+Wi-Fi 6E products Intel® Wi-Fi 6E AX210 (5.1)
+Wi-Fi 6 products Intel® Wi-Fi 6 AX200 (5.1)
