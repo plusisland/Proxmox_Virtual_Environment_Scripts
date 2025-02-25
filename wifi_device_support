@@ -28,7 +28,7 @@ https://wireless.docs.kernel.org/en/latest/en/users/drivers/rtl819x.html
 https://openwrt.org/packages/table/start
 ----------------------------------------------------------------------
 要同時支援 OPNsense 、 OpenWrt 、 Windows 、 Proxmox VE 系統要買
-Wi-Fi 6E products Intel® Wi-Fi 6E AX210 (5.1)
-Wi-Fi 6 products Intel® Wi-Fi 6 AX200 (5.1)
-Wi-Fi 5 Intel® Wireless-AC 9260 (4.14)
-Wi-Fi 5 Intel® Wireless-AC 8265 (4.6)
+Wi-Fi 6E products Intel® Wi-Fi 6E AX210 (5.1) 2.4 Gbps Bluetooth 5.3
+Wi-Fi 6 products Intel® Wi-Fi 6 AX200 (5.1) 2.4 Gbps Bluetooth 5.2
+Wi-Fi 5 Intel® Wireless-AC 9260 (4.14) 1.73 Gbps Bluetooth 5.1
+Wi-Fi 5 Intel® Wireless-AC 8265 (4.6) 867 Mbps Bluetooth 4.2
