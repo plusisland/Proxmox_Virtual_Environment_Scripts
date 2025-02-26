@@ -168,6 +168,7 @@ sleep 20
 # 輸入 enter 進入命令列
 qm_sendline ""
 qm_sendline "uci delete network.@device[0]"
+# Configure network
 qm_sendline "uci set network.wan=interface"
 qm_sendline "uci set network.wan.device=eth0"
 qm_sendline "uci set network.wan.proto=dhcp"
@@ -178,15 +179,17 @@ qm_sendline "uci set network.lan.ipaddr=192.168.2.1"
 qm_sendline "uci set network.lan.netmask=255.255.255.0"
 qm_sendline "uci set network.lan.type=bridge"
 qm_sendline "uci set network.lan.ifname='eth1 eth2 eth3'"
+qm_sendline "uci delete network.wan6"
+qm_sendline "uci commit network"
+qm_sendline "service network restart"
+# Configure DHCP
 qm_sendline "uci set dhcp.lan.interface=lan"
 qm_sendline "uci set dhcp.lan=dhcp"
 qm_sendline "uci set dhcp.lan.start=100"
 qm_sendline "uci set dhcp.lan.limit=100"
 qm_sendline "uci set dhcp.lan.leasetime=12h"
-qm_sendline "uci delete network.wan6"
-qm_sendline "uci commit network"
 qm_sendline "uci commit dhcp"
-qm_sendline "service network reload"
+qm_sendline "service dnsmasq restart"
 echo "等待網路重啟"
 sleep 3
 qm_sendline "opkg update"
@@ -215,6 +218,7 @@ echo "等待套件下載"
 sleep 30
 # 由於 MT7922 不支援 DBDC 所以只有 radio0 可以設定，2.4GHz/5GHz 只能擇一無法同時使用。最大頻寬無法設定最大值只能設定 80 MHz。
 # 應該先上 https://openwrt.org/packages/table/start 查有沒有驅動，MT7915e 有 DBDC 都還比較好，沒事先做功課。
+# Configure wireless
 qm_sendline "uci set wireless.radio0.disabled=0"
 qm_sendline "uci set wireless.radio0.channel=auto"
 qm_sendline "uci set wireless.radio0.htmode=HE80"
