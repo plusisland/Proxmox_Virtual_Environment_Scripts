@@ -32,3 +32,8 @@ Wi-Fi 6E products Intel® Wi-Fi 6E AX210 (5.1) 2.4 Gbps Bluetooth 5.3
 Wi-Fi 6 products Intel® Wi-Fi 6 AX200 (5.1) 2.4 Gbps Bluetooth 5.2
 Wi-Fi 5 Intel® Wireless-AC 9260 (4.14) 1.73 Gbps Bluetooth 5.1
 Wi-Fi 5 Intel® Wireless-AC 8265 (4.6) 867 Mbps Bluetooth 4.2
+
+Wi-Fi 標準	Intel	MediaTek	Realtek
+Wi-Fi 7 BE	Wi-Fi 7 BE200 5.8 Gbps Bluetooth 5.4 (iwlwifi)	Filogic 360 MT7925e 2.9 Gbps Bluetooth 5.4	RTL8922AE 2.4Gbps Bluetooth 5.3(rtw89)
+Wi-Fi 6E AX	Wi-Fi 6E AX210 2.4 Gbps Bluetooth 5.3 (iwlwifi)	Filogic 330 MT7922 2.4 Gbps Bluetooth 5.3	RTL8852CE 2.4Gbps Bluetooth 5.3 (rtw89)
+Wi-Fi 6 AX	Wi-Fi 6 AX200 2.4 Gbps Bluetooth 5.2 (iwlwifi)	Filogic 615 MT7915 1.8 Gbps Bluetooth 5.2	RTL8852BE 1.2Gbps Bluetooth 5.2 (rtw89)
