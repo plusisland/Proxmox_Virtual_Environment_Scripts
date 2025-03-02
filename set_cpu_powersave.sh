@@ -1,4 +1,5 @@
 #!/bin/bash
+# https://forum.proxmox.com/threads/fix-always-high-cpu-frequency-in-proxmox-host.84270/page-3
 
 # 檢查是否已安裝 cpufrequtils 並處理移除選項
 if dpkg -s cpufrequtils > /dev/null 2>&1; then
