@@ -18,7 +18,7 @@ STORAGEID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $
 CORES=1
 MEMORY=256
 # 藍芽走USB
-#USBID=$(lsusb | grep Wireless | awk '{print $6}')
+USBID=$(lsusb | grep Wireless | awk '{print $6}')
 # WIFI走PCI
 PCIID=$(lspci | grep Network | awk '{print $1}')
 
@@ -67,7 +67,7 @@ qm importdisk $VMID openwrt-*.img $STORAGEID
 qm set $VMID \
   --scsi0 $STORAGEID:vm-$VMID-disk-0 \
   --boot order=scsi0 \
-#  --usb0 host=$USBID \
+  --usb0 host=$USBID \
   --hostpci0 $PCIID,pcie=1
 
 # 清理下載的 OpenWrt 映像文件
@@ -210,7 +210,7 @@ qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922
 # UUID: Device Information        (0000180a-0000-1000-8000-00805f9b34fb)
 # 看來不支援 NAP
 # 詳細教學 PDF 請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
-#qm_sendline "opkg install kmod-usb2-pci bluez-daemon mt7922bt-firmware"
+qm_sendline "opkg install kmod-usb2-pci bluez-daemon mt7922bt-firmware"
 # https://openwrt.org/docs/guide-user/hardware/bluetooth/usb.bluetooth
 # 安裝 kmod-usb2-pci bluez-daemon mt7922bt-firmware 只能做一般配對
 # 配對方法 bluetoothctl -----> scan on -----> trust -----> pair -----> connect
@@ -229,7 +229,7 @@ qm_sendline "uci set wireless.default_radio0.network=lan"
 qm_sendline "uci set wireless.default_radio0.mode=ap"
 qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
 qm_sendline "uci set wireless.default_radio0.encryption=none"
-qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi' /etc/rc.local"
+qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
 qm_sendline "uci commit wireless"
 qm_sendline "service wireless reload"
 qm_sendline "opkg install luci-compat"
