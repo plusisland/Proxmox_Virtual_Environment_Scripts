@@ -1,26 +1,23 @@
 #!/usr/bin/env bash
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 # https://github.com/kjames2001/OpenWRT-PVE-AP-MT7922
-# 為了網卡直通必須選用 q35 、 ovmf 且包含 EFI 的映象檔。不建立 EFI 磁碟區，建了只是為了顯示沒有 EFI 磁碟區警告。選 i440fx 、 SeaBIOS 就不需要 EFI 版本，但是直通網路速度較差。
+
+# 虛擬機配置
+VM_ID=100
+VM_NAME="OpenWrt"
+CORES=1
+MEMORY=256
+STORAGE_ID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $2}')
+PCI_ID=$(lspci | grep Network | awk '{print $1}')
+USB_ID=$(lsusb | grep Wireless | awk '{print $6}')
 
 # 取得 OpenWrt 的最新穩定版本
 response=$(curl -s https://openwrt.org)
 stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
 # 下載 OpenWrt 映像的 URL
 URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
-# 下載 OpenWrt 映像黨
+# 下載 OpenWrt 映像檔
 wget -q --show-progress $URL
-
-# 虛擬機配置
-VMID=100
-VMNAME="OpenWrt"
-STORAGEID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $2}')
-CORES=1
-MEMORY=256
-# 藍芽走USB
-USBID=$(lsusb | grep Wireless | awk '{print $6}')
-# WIFI走PCI
-PCIID=$(lspci | grep Network | awk '{print $1}')
 
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
@@ -47,8 +44,8 @@ resize2fs ${loop_device}p2
 losetup -d $loop_device
 
 # 創建虛擬機
-qm create $VMID \
-  --name $VMNAME \
+qm create $VM_ID \
+  --name $VM_NAME \
   -ostype l26 \
   --machine q35 \
   --bios ovmf \
@@ -63,18 +60,18 @@ qm create $VMID \
   --onboot 1
 
 # 將磁碟映像匯入 Proxmox 儲存空間
-qm importdisk $VMID openwrt-*.img $STORAGEID
-qm set $VMID \
-  --scsi0 $STORAGEID:vm-$VMID-disk-0 \
+qm importdisk $VM_ID openwrt-*.img $STORAGE_ID
+qm set $VM_ID \
+  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-0 \
   --boot order=scsi0 \
-  --usb0 host=$USBID \
-  --hostpci0 $PCIID,pcie=1
-
+  --hostpci0 $PCI_ID,pcie=1 \
+  --usb0 host=$USB_ID
+  
 # 清理下載的 OpenWrt 映像文件
 rm -rf openwrt-*.img
 
 # 啟動虛擬機
-qm start $VMID
+qm start $VM_ID
 
 # https://gitlab.com/qemu-project/qemu/-/blob/master/pc-bios/keymaps/en-us
 # 這個函數會根據QEMU的鍵盤編碼將文字轉換為sendkey命令
@@ -149,12 +146,12 @@ qm_sendline() {
         char=${text:$i:1}
         if [[ -v key_map[$char] ]]; then
             key=${key_map[$char]}
-            qm sendkey $VMID $key
+            qm sendkey $VM_ID $key
         else
-            qm sendkey $VMID $char
+            qm sendkey $VM_ID $char
         fi
     done
-    qm sendkey $VMID ret
+    qm sendkey $VM_ID ret
 }
 
 # 輸出`需要補\`
@@ -195,29 +192,14 @@ sleep 3
 qm_sendline "opkg update"
 echo "等待套件清單更新"
 sleep 5
-# 安裝 wpad-openssl 就會自動安裝所有網路相依套件
-# 安裝 acpid 是為了讓 openwrt 支援接收虛擬發的關機指令
-# qemu-ga 不用裝，裝了只能從虛擬機控制面板看 IP，一樣不支援主控台複製貼上指令。且還會造成關機指令無效。qemu-keymaps 待測試
-qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl acpid"
-# https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路
-# 根據此篇方法查詢
-# https://sibsaidinblog-tw.blogspot.com/2016/09/bluetooth-obex.html 
-# UUID: Generic Attribute Profile (00001801-0000-1000-8000-00805f9b34fb)
-# UUID: Generic Access Profile    (00001800-0000-1000-8000-00805f9b34fb)
-# UUID: PnP Information           (00001200-0000-1000-8000-00805f9b34fb)
-# UUID: A/V Remote Control Target (0000110c-0000-1000-8000-00805f9b34fb)
-# UUID: A/V Remote Control        (0000110e-0000-1000-8000-00805f9b34fb)
-# UUID: Device Information        (0000180a-0000-1000-8000-00805f9b34fb)
-# 看來不支援 NAP
-# 詳細教學 PDF 請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
-qm_sendline "opkg install kmod-usb2-pci bluez-daemon mt7922bt-firmware"
-# https://openwrt.org/docs/guide-user/hardware/bluetooth/usb.bluetooth
-# 安裝 kmod-usb2-pci bluez-daemon mt7922bt-firmware 只能做一般配對
-# 配對方法 bluetoothctl -----> scan on -----> trust -----> pair -----> connect
+qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl usbutils kmod-usb2-pci mt7922bt-firmware bluez-daemon acpid qemu-ga luci-compat luci-lib-ipkg"
 echo "等待套件下載"
 sleep 30
-# 由於 MT7922 不支援 DBDC 所以只有 radio0 可以設定，2.4GHz/5GHz 只能擇一無法同時使用。最大頻寬無法設定最大值只能設定 80 MHz。
-# 應該先上 https://openwrt.org/packages/table/start 查有沒有驅動，MT7915e 有 DBDC 都還比較好，沒事先做功課。
+ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
+qm_sendline "wget -O luci-theme-argon.ipk $ipk_url"
+qm_sendline "opkg install luci-theme-argon.ipk"
+qm_sendline "rm -rf luci-theme-argon.ipk"
+# https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
 # Configure wireless
 qm_sendline "uci set wireless.radio0.disabled=0"
 qm_sendline "uci set wireless.radio0.channel=auto"
@@ -232,11 +214,5 @@ qm_sendline "uci set wireless.default_radio0.encryption=none"
 qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
 qm_sendline "uci commit wireless"
 qm_sendline "service wireless reload"
-qm_sendline "opkg install luci-compat"
-qm_sendline "opkg install luci-lib-ipkg"
-ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
-qm_sendline "wget -O luci-theme-argon.ipk $ipk_url"
-qm_sendline "opkg install luci-theme-argon.ipk"
-qm_sendline "rm -rf luci-theme-argon.ipk"
 echo "重啟虛擬機。"
 qm_sendline "reboot"
