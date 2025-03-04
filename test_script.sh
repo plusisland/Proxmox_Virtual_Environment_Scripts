@@ -30,7 +30,7 @@ PCI_ID=$(lspci | grep Network | awk '{print $1}')
 USB_ID=$(lsusb | grep -E 'Wireless|Bluetooth' | awk '{print $6}')
 
 # 檢查 vmbr1 是否存在，不存在則提示使用者
-if ! pvesm list vmbr1 > /dev/null 2>&1; then
+if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
     echo "vmbr1 網橋不存在。"
     echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
     exit 1
