@@ -240,10 +240,10 @@ sleep 30
 if lspci | grep -q "AX210"; then
     echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
     qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
-	sleep 10
-	# Configure wireless
+    sleep 10
+    # Configure wireless
     qm_sendline "uci set wireless.radio0.disabled=0"
-	qm_sendline "uci set wireless.radio0.htmode=HE40"
+    qm_sendline "uci set wireless.radio0.htmode=HE40"
     qm_sendline "uci set wireless.radio0.channel=6"
     qm_sendline "uci set wireless.radio0.band='2g'"
     qm_sendline "uci set wireless.radio0.country=TW"
@@ -257,8 +257,8 @@ if lspci | grep -q "AX210"; then
 elif lspci | grep -q "MT7922"; then
     echo "偵測到 MediaTek MT7922 網卡，安裝 mt7921e 驅動..."
     qm_sendline "opkg install kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
-	sleep 10
-	# Configure wireless
+    sleep 10
+    # Configure wireless
     qm_sendline "uci set wireless.radio0.disabled=0"
     qm_sendline "uci set wireless.radio0.hwmode=11ax"
     qm_sendline "uci set wireless.radio0.htmode=HE80"
