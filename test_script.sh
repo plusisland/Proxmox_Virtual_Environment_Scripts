@@ -237,17 +237,16 @@ qm_sendline "opkg install pciutils wpad-openssl usbutils kmod-usb2-pci bluez-dae
 sleep 30
 
 # 判斷網卡類型並安裝對應驅動
-if lspci | grep -q "AX210\|ax210"; then
+if lspci | grep -q "AX210"; then
     echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
     qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
 	sleep 10
 	# Configure wireless
     qm_sendline "uci set wireless.radio0.disabled=0"
-    qm_sendline "uci set wireless.radio0.channel=auto"
-    qm_sendline "uci set wireless.radio0.htmode=HE80"
+	qm_sendline "uci set wireless.radio0.htmode=HE40"
+    qm_sendline "uci set wireless.radio0.channel=6"
+    qm_sendline "uci set wireless.radio0.band='2g'"
     qm_sendline "uci set wireless.radio0.country=TW"
-    qm_sendline "uci set wireless.radio0.hwmode=11ax"
-    qm_sendline "uci set wireless.radio0.band='auto'"
     qm_sendline "uci set wireless.default_radio0.network=lan"
     qm_sendline "uci set wireless.default_radio0.mode=ap"
     qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
@@ -255,17 +254,17 @@ if lspci | grep -q "AX210\|ax210"; then
     qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
     qm_sendline "uci commit wireless"
     qm_sendline "service wireless reload"
-elif lspci | grep -q "MT7921\|MT7922\|mt7921\|mt7922"; then
-    echo "偵測到 MediaTek MT7921/MT7922 網卡，安裝 mt7921e 驅動..."
+elif lspci | grep -q "MT7922"; then
+    echo "偵測到 MediaTek MT7922 網卡，安裝 mt7921e 驅動..."
     qm_sendline "opkg install kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
 	sleep 10
 	# Configure wireless
     qm_sendline "uci set wireless.radio0.disabled=0"
-    qm_sendline "uci set wireless.radio0.channel=auto"
-    qm_sendline "uci set wireless.radio0.htmode=HE80"
-    qm_sendline "uci set wireless.radio0.country=TW"
     qm_sendline "uci set wireless.radio0.hwmode=11ax"
+    qm_sendline "uci set wireless.radio0.htmode=HE80"
+    qm_sendline "uci set wireless.radio0.channel=auto"
     qm_sendline "uci set wireless.radio0.band='auto'"
+    qm_sendline "uci set wireless.radio0.country=TW"
     qm_sendline "uci set wireless.default_radio0.network=lan"
     qm_sendline "uci set wireless.default_radio0.mode=ap"
     qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
@@ -274,7 +273,7 @@ elif lspci | grep -q "MT7921\|MT7922\|mt7921\|mt7922"; then
     qm_sendline "uci commit wireless"
     qm_sendline "service wireless reload"
 else
-    echo "未偵測到 Intel AX210 或 MediaTek MT7921/MT7922 網卡，跳過驅動安裝。"
+    echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
 fi
 
 echo "重啟虛擬機。"
