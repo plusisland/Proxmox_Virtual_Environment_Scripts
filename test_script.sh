@@ -2,14 +2,52 @@
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 # https://github.com/kjames2001/OpenWRT-PVE-AP-MT7922
 
-# 虛擬機配置
-VM_ID=100
+# 詢問使用者虛擬機 ID
+read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
+while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
+    echo "虛擬機 ID 必須為數字且不能為空。"
+    read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
+done
+
 VM_NAME="OpenWrt"
 CORES=1
 MEMORY=256
-STORAGE_ID=$(grep "content images" -B 3 /etc/pve/storage.cfg | awk 'NR==1{print $2}')
+STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
+
+# 檢查 lspci  是否已安裝，若未安裝則安裝
+if ! command -v lspci &> /dev/null; then
+    echo "lspci 未安裝，正在安裝 pciutils..."
+    apt install -y pciutils
+fi
+
+# 檢查 lsusb 是否已安裝，若未安裝則安裝
+if ! command -v lsusb &> /dev/null; then
+    echo "lsusb 未安裝，正在安裝 usbutils..."
+    apt install -y usbutils
+fi
+
 PCI_ID=$(lspci | grep Network | awk '{print $1}')
-USB_ID=$(lsusb | grep Wireless | awk '{print $6}')
+USB_ID=$(lsusb | grep -E 'Wireless|Bluetooth' | awk '{print $6}')
+
+# 檢查 vmbr1 是否存在，不存在則提示使用者
+if ! pvesm list vmbr1 > /dev/null 2>&1; then
+    echo "vmbr1 網橋不存在。"
+    echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
+    exit 1
+fi
+
+# 詢問使用者路由器管理 IP
+read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.2.1): " LAN_IP
+while [[ -z "$LAN_IP" ]]; do
+    echo "IP 位址不能為空。"
+    read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.2.1): " LAN_IP
+done
+# 詢問使用者路由器管理 Netmask
+read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
+while [[ -z "$NET_MASK" ]]; do
+    echo "Netmask 不能為空。"
+    read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
+done
 
 # 取得 OpenWrt 的最新穩定版本
 response=$(curl -s https://openwrt.org)
@@ -55,8 +93,6 @@ qm create $VM_ID \
   --memory $MEMORY \
   --net0 virtio,bridge=vmbr0 \
   --net1 virtio,bridge=vmbr1 \
-  --net2 virtio,bridge=vmbr2 \
-  --net3 virtio,bridge=vmbr3 \
   --onboot 1
 
 # 將磁碟映像匯入 Proxmox 儲存空間
@@ -172,10 +208,10 @@ qm_sendline "uci set network.wan.proto=dhcp"
 qm_sendline "uci set network.lan=interface"
 qm_sendline "uci set network.lan.device=br-lan"
 qm_sendline "uci set network.lan.proto=static"
-qm_sendline "uci set network.lan.ipaddr=192.168.2.1"
-qm_sendline "uci set network.lan.netmask=255.255.255.0"
+qm_sendline "uci set network.lan.ipaddr=$LAN_IP"
+qm_sendline "uci set network.lan.netmask=$NET_MASK"
 qm_sendline "uci set network.lan.type=bridge"
-qm_sendline "uci set network.lan.ifname='eth1 eth2 eth3'"
+qm_sendline "uci set network.lan.ifname=eth1"
 qm_sendline "uci delete network.wan6"
 qm_sendline "uci commit network"
 qm_sendline "service network restart"
@@ -192,27 +228,55 @@ sleep 3
 qm_sendline "opkg update"
 echo "等待套件清單更新"
 sleep 5
-qm_sendline "opkg install luci-i18n-base-zh-tw pciutils kmod-mt7921e kmod-mt7922-firmware wpad-openssl usbutils kmod-usb2-pci mt7922bt-firmware bluez-daemon acpid qemu-ga luci-compat luci-lib-ipkg"
-echo "等待套件下載"
-sleep 30
+qm_sendline "opkg install luci-i18n-base-zh-tw"
 ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 qm_sendline "wget -O luci-theme-argon.ipk $ipk_url"
 qm_sendline "opkg install luci-theme-argon.ipk"
 qm_sendline "rm -rf luci-theme-argon.ipk"
-# https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
-# Configure wireless
-qm_sendline "uci set wireless.radio0.disabled=0"
-qm_sendline "uci set wireless.radio0.channel=auto"
-qm_sendline "uci set wireless.radio0.htmode=HE80"
-qm_sendline "uci set wireless.radio0.country=TW"
-qm_sendline "uci set wireless.radio0.hwmode=11ax"
-qm_sendline "uci set wireless.radio0.band='auto'"
-qm_sendline "uci set wireless.default_radio0.network=lan"
-qm_sendline "uci set wireless.default_radio0.mode=ap"
-qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
-qm_sendline "uci set wireless.default_radio0.encryption=none"
-qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
-qm_sendline "uci commit wireless"
-qm_sendline "service wireless reload"
+qm_sendline "opkg install pciutils wpad-openssl usbutils kmod-usb2-pci bluez-daemon acpid qemu-ga luci-compat luci-lib-ipkg"
+sleep 30
+
+# 判斷網卡類型並安裝對應驅動
+if lspci | grep -q "AX210\|ax210"; then
+    echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
+    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
+	sleep 10
+	# Configure wireless
+    qm_sendline "uci set wireless.radio0.disabled=0"
+    qm_sendline "uci set wireless.radio0.channel=auto"
+    qm_sendline "uci set wireless.radio0.htmode=HE80"
+    qm_sendline "uci set wireless.radio0.country=TW"
+    qm_sendline "uci set wireless.radio0.hwmode=11ax"
+    qm_sendline "uci set wireless.radio0.band='auto'"
+    qm_sendline "uci set wireless.default_radio0.network=lan"
+    qm_sendline "uci set wireless.default_radio0.mode=ap"
+    qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+    qm_sendline "uci set wireless.default_radio0.encryption=none"
+    qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
+    qm_sendline "uci commit wireless"
+    qm_sendline "service wireless reload"
+elif lspci | grep -q "MT7921\|MT7922\|mt7921\|mt7922"; then
+    echo "偵測到 MediaTek MT7921/MT7922 網卡，安裝 mt7921e 驅動..."
+    qm_sendline "opkg install kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
+	sleep 10
+	# Configure wireless
+    qm_sendline "uci set wireless.radio0.disabled=0"
+    qm_sendline "uci set wireless.radio0.channel=auto"
+    qm_sendline "uci set wireless.radio0.htmode=HE80"
+    qm_sendline "uci set wireless.radio0.country=TW"
+    qm_sendline "uci set wireless.radio0.hwmode=11ax"
+    qm_sendline "uci set wireless.radio0.band='auto'"
+    qm_sendline "uci set wireless.default_radio0.network=lan"
+    qm_sendline "uci set wireless.default_radio0.mode=ap"
+    qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+    qm_sendline "uci set wireless.default_radio0.encryption=none"
+    qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
+    qm_sendline "uci commit wireless"
+    qm_sendline "service wireless reload"
+else
+    echo "未偵測到 Intel AX210 或 MediaTek MT7921/MT7922 網卡，跳過驅動安裝。"
+fi
+
 echo "重啟虛擬機。"
 qm_sendline "reboot"
+# https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
