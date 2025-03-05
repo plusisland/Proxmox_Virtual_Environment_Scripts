@@ -248,6 +248,7 @@ fi
 sleep 10
 # https://openwrt.org/docs/guide-user/network/wifi/basic
 # https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
+# https://gist.github.com/iffa/290b1b83b17f51355c63a97df7c1cc60
 # Configure wireless
 qm_sendline "uci set wireless.radio0.disabled=0"
 qm_sendline "uci set wireless.radio0.channel=auto"
