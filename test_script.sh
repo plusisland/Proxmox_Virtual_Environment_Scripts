@@ -235,49 +235,33 @@ qm_sendline "opkg install luci-theme-argon.ipk"
 qm_sendline "rm -rf luci-theme-argon.ipk"
 qm_sendline "opkg install pciutils wpad-openssl usbutils kmod-usb2-pci bluez-daemon acpid qemu-ga luci-compat luci-lib-ipkg"
 sleep 30
-
 # 判斷網卡類型並安裝對應驅動
 if lspci | grep -q "AX210"; then
     echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
     qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
-    sleep 10
-    # Configure wireless
-    qm_sendline "uci set wireless.radio0.disabled=0"
-    qm_sendline "uci set wireless.radio0.htmode=HE40"
-    qm_sendline "uci set wireless.radio0.channel=6"
-    qm_sendline "uci set wireless.radio0.band='2g'"
-    qm_sendline "uci set wireless.radio0.country=TW"
-    qm_sendline "uci set wireless.default_radio0.network=lan"
-    qm_sendline "uci set wireless.default_radio0.mode=ap"
-    qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
-    qm_sendline "uci set wireless.default_radio0.encryption=none"
-    qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
-    qm_sendline "uci commit wireless"
-    qm_sendline "service wireless reload"
 elif lspci | grep -q "MT7922"; then
     echo "偵測到 MediaTek MT7922 網卡，安裝 mt7921e 驅動..."
     qm_sendline "opkg install kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
-    sleep 10
-    # Configure wireless
-    qm_sendline "uci set wireless.radio0.disabled=0"
-    qm_sendline "uci set wireless.radio0.hwmode=11ax"
-    qm_sendline "uci set wireless.radio0.htmode=HE80"
-    qm_sendline "uci set wireless.radio0.channel=auto"
-    qm_sendline "uci set wireless.radio0.band='auto'"
-    qm_sendline "uci set wireless.radio0.country=TW"
-    qm_sendline "uci set wireless.default_radio0.network=lan"
-    qm_sendline "uci set wireless.default_radio0.mode=ap"
-    qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
-    qm_sendline "uci set wireless.default_radio0.encryption=none"
-    qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
-    qm_sendline "uci commit wireless"
-    qm_sendline "service wireless reload"
 else
     echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
 fi
-
+sleep 10
+# https://openwrt.org/docs/guide-user/network/wifi/basic
+# https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
+# Configure wireless
+qm_sendline "uci set wireless.radio0.disabled=0"
+qm_sendline "uci set wireless.radio0.channel=auto"
+qm_sendline "uci set wireless.radio0.band='5g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
+qm_sendline "uci set wireless.radio0.htmode=HE80" # HE20, HE40, HE80, HE160
+qm_sendline "uci set wireless.radio0.country=TW"
+qm_sendline "uci set wireless.default_radio0.network=lan"
+qm_sendline "uci set wireless.default_radio0.mode=ap"
+qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+qm_sendline "uci set wireless.default_radio0.encryption=none"
+qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
+qm_sendline "uci commit wireless"
+qm_sendline "service wireless reload"
+sleep 3
 echo "重啟虛擬機。"
 qm_sendline "reboot"
 # https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
-# https://openwrt.org/docs/guide-user/network/wifi/basic
-# https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
