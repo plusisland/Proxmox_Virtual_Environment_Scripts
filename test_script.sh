@@ -228,12 +228,12 @@ sleep 3
 qm_sendline "opkg update"
 echo "等待套件清單更新"
 sleep 5
-qm_sendline "opkg install luci-i18n-base-zh-tw"
+qm_sendline "opkg install luci-i18n-base-zh-tw luci-compat luci-lib-ipkg"
 ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 qm_sendline "wget -O luci-theme-argon.ipk $ipk_url"
 qm_sendline "opkg install luci-theme-argon.ipk"
 qm_sendline "rm -rf luci-theme-argon.ipk"
-qm_sendline "opkg install pciutils wpad-openssl usbutils kmod-usb2-pci bluez-daemon acpid qemu-ga luci-compat luci-lib-ipkg"
+qm_sendline "opkg install pciutils wpad-openssl usbutils kmod-usb2-pci bluez-daemon acpid qemu-ga"
 sleep 30
 # 判斷網卡類型並安裝對應驅動
 if lspci | grep -q "AX210"; then
