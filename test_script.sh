@@ -279,3 +279,5 @@ fi
 echo "重啟虛擬機。"
 qm_sendline "reboot"
 # https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
+# https://openwrt.org/docs/guide-user/network/wifi/basic
+# https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
