@@ -260,7 +260,7 @@ qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
 qm_sendline "uci set wireless.default_radio0.encryption=none"
 qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
 qm_sendline "uci commit wireless"
-qm_sendline "service wireless reload"
+qm_sendline "wifi"
 sleep 3
 echo "重啟虛擬機。"
 qm_sendline "reboot"
