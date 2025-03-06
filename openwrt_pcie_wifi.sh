@@ -238,13 +238,14 @@ sleep 30
 # 判斷網卡類型並安裝對應驅動
 if lspci | grep -q "AX210"; then
     echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
-    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
+#    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
     qm_sendline "wget https://github.com/plusisland/Proxmox_Virtual_Environment_Scripts/raw/refs/heads/main/hostapd-common_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
     qm_sendline "opkg install hostapd-common_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
     qm_sendline "rm -rf hostapd-common_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
     qm_sendline "wget https://github.com/plusisland/Proxmox_Virtual_Environment_Scripts/raw/refs/heads/main/wpad-mesh-openssl_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
     qm_sendline "opkg install wpad-mesh-openssl_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
     qm_sendline "rm -rf wpad-mesh-openssl_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
+    qm_sendline "opkg install iwlwifi-firmware-ax210"
 elif lspci | grep -q "MT7922"; then
     echo "偵測到 MediaTek MT7922 網卡，安裝 mt7921e 驅動..."
     qm_sendline "opkg install wpad-openssl kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
