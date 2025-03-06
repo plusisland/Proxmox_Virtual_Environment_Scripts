@@ -259,7 +259,7 @@ qm_sendline "uci set wireless.default_radio0.network=lan"
 qm_sendline "uci set wireless.default_radio0.mode=ap"
 qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
 qm_sendline "uci set wireless.default_radio0.encryption=none"
-qm_sendline "sed -i '/exit 0/i\\sleep 10 && wifi && service bluetoothd restart' /etc/rc.local"
+qm_sendline "sed -i '/exit 0/i\\(sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local"
 qm_sendline "uci commit wireless"
 qm_sendline "wifi"
 sleep 3
