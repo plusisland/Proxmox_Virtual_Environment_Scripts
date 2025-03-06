@@ -233,44 +233,61 @@ ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releas
 qm_sendline "wget -O luci-theme-argon.ipk $ipk_url"
 qm_sendline "opkg install luci-theme-argon.ipk"
 qm_sendline "rm -rf luci-theme-argon.ipk"
-qm_sendline "opkg install pciutils usbutils kmod-usb2-pci bluez-daemon acpid qemu-ga"
+qm_sendline "opkg install pciutils usbutils acpid qemu-ga"
 sleep 30
 # 判斷網卡類型並安裝對應驅動
 if lspci | grep -q "AX210"; then
-    echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
-    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
+    echo "偵測到 Intel AX210 網卡，安裝驅動..."
+    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210 wpad-openssl kmod-usb2-pci bluez-daemon"
+	sleep 10
+	# Configure wireless
+	qm_sendline "uci set wireless.radio0.disabled=0"
+	qm_sendline "uci set wireless.radio0.channel=6"
+	qm_sendline "uci set wireless.radio0.band='2g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
+	qm_sendline "uci set wireless.radio0.htmode=HE40" # HE20, HE40, HE80, HE160
+	qm_sendline "uci set wireless.radio0.country=TW"
+	qm_sendline "uci set wireless.default_radio0.network=lan"
+	qm_sendline "uci set wireless.default_radio0.mode=ap"
+	qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+	qm_sendline "uci set wireless.default_radio0.encryption=none"
+	qm_sendline "sed -i '/exit 0/i\\(sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local"
+	qm_sendline "uci commit wireless"
+	qm_sendline "wifi"
 elif lspci | grep -q "MT7922"; then
-    echo "偵測到 MediaTek MT7922 網卡，安裝 mt7921e 驅動..."
-    qm_sendline "opkg install wpad-openssl kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
+    echo "偵測到 MediaTek MT7922 網卡，安裝驅動..."
+    qm_sendline "opkg install kmod-mt7921e kmod-mt7922-firmware wpad-openssl mt7922bt-firmware kmod-usb2-pci bluez-daemon"
+	sleep 10
+	# Configure wireless
+	qm_sendline "uci set wireless.radio0.disabled=0"
+	qm_sendline "uci set wireless.radio0.channel=149"
+	qm_sendline "uci set wireless.radio0.band='5g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
+	qm_sendline "uci set wireless.radio0.htmode=HE80" # HE20, HE40, HE80, HE160
+	qm_sendline "uci set wireless.radio0.country=TW"
+	qm_sendline "uci set wireless.default_radio0.network=lan"
+	qm_sendline "uci set wireless.default_radio0.mode=ap"
+	qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+	qm_sendline "uci set wireless.default_radio0.encryption=none"
+	qm_sendline "sed -i '/exit 0/i\\(sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local"
+	qm_sendline "uci commit wireless"
+	qm_sendline "wifi"
 else
     echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
 fi
-sleep 10
-# https://openwrt.org/docs/guide-user/network/wifi/basic
-# https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
-# https://gist.github.com/iffa/290b1b83b17f51355c63a97df7c1cc60
-# Configure wireless
-qm_sendline "uci set wireless.radio0.disabled=0"
-qm_sendline "uci set wireless.radio0.channel=6"
-qm_sendline "uci set wireless.radio0.band='2g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
-qm_sendline "uci set wireless.radio0.htmode=HE40" # HE20, HE40, HE80, HE160
-qm_sendline "uci set wireless.radio0.country=TW"
-qm_sendline "uci set wireless.default_radio0.network=lan"
-qm_sendline "uci set wireless.default_radio0.mode=ap"
-qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
-qm_sendline "uci set wireless.default_radio0.encryption=none"
-qm_sendline "sed -i '/exit 0/i\\(sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local"
-qm_sendline "uci commit wireless"
-qm_sendline "wifi"
 sleep 3
 echo "重啟虛擬機。"
 qm_sendline "reboot"
-# https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
+
 # country TW: DFS-FCC
-# (2400 - 2483 @ 40), (N/A, 30), (N/A)
-# (5150 - 5250 @ 80), (N/A, 23), (N/A), AUTO-BW
-# (5250 - 5350 @ 80), (N/A, 23), (0 ms), DFS, AUTO-BW
-# (5470 - 5730 @ 160), (N/A, 23), (0 ms), DFS
-# (5725 - 5850 @ 80), (N/A, 30), (N/A)
-# (5945 - 6425 @ 320), (N/A, 23), (N/A), NO-OUTDOOR
+# (2400 - 2483 @ 40), (N/A, 30), (N/A) 2.4GHz 1 6 11
+# (5150 - 5250 @ 80), (N/A, 23), (N/A), AUTO-BW 5GHz 36 40 44 48
+# (5250 - 5350 @ 80), (N/A, 23), (0 ms), DFS, AUTO-BW 5GHz
+# (5470 - 5730 @ 160), (N/A, 23), (0 ms), DFS 5GHz
+# (5725 - 5850 @ 80), (N/A, 30), (N/A) 5GHz 149 153
+# (5945 - 6425 @ 320), (N/A, 23), (N/A), NO-OUTDOOR 6Ghz 1 5 9 13 17 21
 # (57000 - 66000 @ 2160), (N/A, 40), (N/A)
+
+# https://openwrt.org/docs/guide-user/network/wifi/basic
+# https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
+# https://gist.github.com/iffa/290b1b83b17f51355c63a97df7c1cc60
+# https://www.yumao.name/read/openwrt-share-network-via-bluetooth
+# https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
