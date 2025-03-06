@@ -266,3 +266,11 @@ sleep 3
 echo "重啟虛擬機。"
 qm_sendline "reboot"
 # https://www.yumao.name/read/openwrt-share-network-via-bluetooth 藍芽使用 NAP 共享網路請參考 https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
+# country TW: DFS-FCC
+# (2400 - 2483 @ 40), (N/A, 30), (N/A)
+# (5150 - 5250 @ 80), (N/A, 23), (N/A), AUTO-BW
+# (5250 - 5350 @ 80), (N/A, 23), (0 ms), DFS, AUTO-BW
+# (5470 - 5730 @ 160), (N/A, 23), (0 ms), DFS
+# (5725 - 5850 @ 80), (N/A, 30), (N/A)
+# (5945 - 6425 @ 320), (N/A, 23), (N/A), NO-OUTDOOR
+# (57000 - 66000 @ 2160), (N/A, 40), (N/A)
