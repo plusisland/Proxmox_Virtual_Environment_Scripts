@@ -238,14 +238,7 @@ sleep 30
 # 判斷網卡類型並安裝對應驅動
 if lspci | grep -q "AX210"; then
     echo "偵測到 Intel AX210 網卡，安裝 iwlwifi 驅動..."
-#    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
-    qm_sendline "wget https://github.com/plusisland/Proxmox_Virtual_Environment_Scripts/raw/refs/heads/main/hostapd-common_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
-    qm_sendline "opkg install hostapd-common_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
-    qm_sendline "rm -rf hostapd-common_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
-    qm_sendline "wget https://github.com/plusisland/Proxmox_Virtual_Environment_Scripts/raw/refs/heads/main/wpad-mesh-openssl_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
-    qm_sendline "opkg install wpad-mesh-openssl_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
-    qm_sendline "rm -rf wpad-mesh-openssl_2023-09-08-e5ccbfc6-3_x86_64_lar.ipk"
-    qm_sendline "opkg install iwlwifi-firmware-ax210"
+    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210"
 elif lspci | grep -q "MT7922"; then
     echo "偵測到 MediaTek MT7922 網卡，安裝 mt7921e 驅動..."
     qm_sendline "opkg install wpad-openssl kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
@@ -258,9 +251,9 @@ sleep 10
 # https://gist.github.com/iffa/290b1b83b17f51355c63a97df7c1cc60
 # Configure wireless
 qm_sendline "uci set wireless.radio0.disabled=0"
-qm_sendline "uci set wireless.radio0.channel=auto"
-qm_sendline "uci set wireless.radio0.band='5g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
-qm_sendline "uci set wireless.radio0.htmode=HE80" # HE20, HE40, HE80, HE160
+qm_sendline "uci set wireless.radio0.channel=6"
+qm_sendline "uci set wireless.radio0.band='2g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
+qm_sendline "uci set wireless.radio0.htmode=HE40" # HE20, HE40, HE80, HE160
 qm_sendline "uci set wireless.radio0.country=TW"
 qm_sendline "uci set wireless.default_radio0.network=lan"
 qm_sendline "uci set wireless.default_radio0.mode=ap"
