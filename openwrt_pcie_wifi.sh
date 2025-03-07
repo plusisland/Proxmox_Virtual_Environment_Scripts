@@ -62,12 +62,9 @@ gunzip openwrt-*.img.gz
 qemu-img resize -f raw openwrt-*.img 512M
 
 # 安裝 parted
-if ! command -v parted &> /dev/null
-then
+if ! command -v parted &> /dev/null; then
     echo "parted 未安装，正在安装..."
     apt install -y parted
-else
-    echo "parted 已安装"
 fi
 
 # 取得未使用磁碟裝置位置
