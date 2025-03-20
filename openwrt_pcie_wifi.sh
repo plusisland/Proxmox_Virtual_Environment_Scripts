@@ -81,7 +81,7 @@ losetup -d $loop_device
 # 創建虛擬機
 qm create $VM_ID \
   --name $VM_NAME \
-  -ostype l26 \
+  --ostype l26 \
   --machine q35 \
   --bios ovmf \
   --scsihw virtio-scsi-single \
