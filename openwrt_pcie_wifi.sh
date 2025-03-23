@@ -89,14 +89,14 @@ qm create $VM_ID \
   --cpu host \
   --memory $MEMORY \
   --net0 virtio,bridge=vmbr0 \
-  --net1 virtio,bridge=vmbr1 \
-  --serial 0
+  --net1 virtio,bridge=vmbr1
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VM_ID openwrt-*.img $STORAGE_ID
 qm set $VM_ID \
-  --onboot 1 \
   --scsi0 $STORAGE_ID:vm-$VM_ID-disk-0 \
+  --serial0 socket \
+  --onboot 1 \
   --boot order=scsi0 \
   --hostpci0 $PCI_ID,pcie=1 \
   --usb0 host=$USB_ID
