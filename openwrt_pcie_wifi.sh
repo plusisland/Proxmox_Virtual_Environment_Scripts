@@ -89,14 +89,14 @@ qm create $VM_ID \
   --cpu host \
   --memory $MEMORY \
   --net0 virtio,bridge=vmbr0 \
-  --net1 virtio,bridge=vmbr1
+  --net1 virtio,bridge=vmbr1 \
+  --serial 0
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VM_ID openwrt-*.img $STORAGE_ID
 qm set $VM_ID \
-  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-0 \
-  --serial0 socket \
   --onboot 1 \
+  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-0 \
   --boot order=scsi0 \
   --hostpci0 $PCI_ID,pcie=1 \
   --usb0 host=$USB_ID
@@ -107,39 +107,185 @@ rm -rf openwrt-*.img
 # 啟動虛擬機
 qm start $VM_ID
 
+# https://gitlab.com/qemu-project/qemu/-/blob/master/pc-bios/keymaps/en-us
+# 這個函數會根據QEMU的鍵盤編碼將文字轉換為sendkey命令
+qm_sendline() {
+    local text="$1"     # 要轉換的文字
+	echo -e "發送命令:$text"
+    # 創建一個鍵位對應表，去掉了小寫字母和數字
+    declare -A key_map=(
+        ['A']='shift-a'
+        ['B']='shift-b'
+        ['C']='shift-c'
+        ['D']='shift-d'
+        ['E']='shift-e'
+        ['F']='shift-f'
+        ['G']='shift-g'
+        ['H']='shift-h'
+        ['I']='shift-i'
+        ['J']='shift-j'
+        ['K']='shift-k'
+        ['L']='shift-l'
+        ['M']='shift-m'
+        ['N']='shift-n'
+        ['O']='shift-o'
+        ['P']='shift-p'
+        ['Q']='shift-q'
+        ['R']='shift-r'
+        ['S']='shift-s'
+        ['T']='shift-t'
+        ['U']='shift-u'
+        ['V']='shift-v'
+        ['W']='shift-w'
+        ['X']='shift-x'
+        ['Y']='shift-y'
+        ['Z']='shift-z'
+        [' ']='spc'
+        ['`']='grave_accent'
+        ['~']='shift-grave_accent'
+        ['!']='shift-1'
+        ['@']='shift-2'
+        ['#']='shift-3'
+        ['$']='shift-4'
+        ['%']='shift-5'
+        ['^']='shift-6'
+        ['&']='shift-7'
+        ['*']='shift-8'
+        ['(']='shift-9'
+        [')']='shift-0'
+        ['-']='minus'
+        ['_']='shift-minus'
+        ['=']='equal'
+        ['+']='shift-equal'
+        ['[']='bracket_left'
+        ['{']='shift-bracket_left'
+        [']']='bracket_right'
+        ['}']='shift-bracket_right'
+        ['\']='backslash'
+        ['|']='shift-backslash'
+        [';']='semicolon'
+        [':']='shift-semicolon'
+        ["'"]='apostrophe'
+        ['"']='shift-apostrophe'
+        [',']='comma'
+        ['<']='shift-comma'
+        ['.']='dot'
+        ['>']='shift-dot'
+        ["/"]='slash'
+        ['?']='shift-slash'
+    )
+
+    # 遍歷輸入文字，並發送對應的sendkey命令
+    for (( i=0; i<${#text}; i++ )); do
+        char=${text:$i:1}
+        if [[ -v key_map[$char] ]]; then
+            key=${key_map[$char]}
+            qm sendkey $VM_ID $key
+        else
+            qm sendkey $VM_ID $char
+        fi
+    done
+    qm sendkey $VM_ID ret
+}
+
+# 輸出`需要補\`
+# 輸出\需要補成\\
+# 輸出"需要補成\"
+#send_keys 100 "Aa \`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?"
+
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
 sleep 20
-expect <<EOF
-    set timeout 10
-    spawn qm terminal $VM_ID
-    expect "starting serial terminal"
-    send "\r"
-    expect "#"
-    send "uci delete network.@device[0]\r"
-    # Configure network
-    send "uci set network.wan=interface\r"
-    send "uci set network.wan.device=eth0\r"
-    send "uci set network.wan.proto=dhcp\r"
-    send "uci set network.lan=interface\r"
-    send "uci set network.lan.device=br-lan\r"
-    send "uci set network.lan.proto=static\r"
-    send "uci set network.lan.ipaddr=$LAN_IP\r"
-    send "uci set network.lan.netmask=$NET_MASK\r"
-    send "uci set network.lan.type=bridge\r"
-    send "uci set network.lan.ifname=eth1\r"
-    send "uci delete network.wan6\r"
-    send "uci commit network\r"
-    send "service network restart\r"
-    # Configure DHCP
-    send "uci set dhcp.lan.interface=lan\r"
-    send "uci set dhcp.lan=dhcp\r"
-    send "uci set dhcp.lan.start=100\r"
-    send "uci set dhcp.lan.limit=100\r"
-    send "uci set dhcp.lan.leasetime=12h\r"
-    send "uci commit dhcp\r"
-    send "service dnsmasq restart\r"
+# 輸入 enter 進入命令列
+qm_sendline ""
+qm_sendline "uci delete network.@device[0]"
+# Configure network
+qm_sendline "uci set network.wan=interface"
+qm_sendline "uci set network.wan.device=eth0"
+qm_sendline "uci set network.wan.proto=dhcp"
+qm_sendline "uci set network.lan=interface"
+qm_sendline "uci set network.lan.device=br-lan"
+qm_sendline "uci set network.lan.proto=static"
+qm_sendline "uci set network.lan.ipaddr=$LAN_IP"
+qm_sendline "uci set network.lan.netmask=$NET_MASK"
+qm_sendline "uci set network.lan.type=bridge"
+qm_sendline "uci set network.lan.ifname=eth1"
+qm_sendline "uci delete network.wan6"
+qm_sendline "uci commit network"
+qm_sendline "service network restart"
+# Configure DHCP
+qm_sendline "uci set dhcp.lan.interface=lan"
+qm_sendline "uci set dhcp.lan=dhcp"
+qm_sendline "uci set dhcp.lan.start=100"
+qm_sendline "uci set dhcp.lan.limit=100"
+qm_sendline "uci set dhcp.lan.leasetime=12h"
+qm_sendline "uci commit dhcp"
+qm_sendline "service dnsmasq restart"
+echo "等待網路重啟"
+sleep 3
+qm_sendline "opkg update"
+echo "等待套件清單更新"
+sleep 5
+qm_sendline "opkg install luci-i18n-base-zh-tw luci-compat luci-lib-ipkg"
+ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
+qm_sendline "wget -O luci-theme-argon.ipk $ipk_url"
+qm_sendline "opkg install luci-theme-argon.ipk"
+qm_sendline "rm -rf luci-theme-argon.ipk"
+qm_sendline "opkg install pciutils usbutils acpid qemu-ga"
+sleep 30
+# 判斷網卡類型並安裝對應驅動
+if lspci | grep -q "AX210"; then
+    echo "偵測到 Intel AX210 網卡，安裝驅動..."
+    qm_sendline "opkg install kmod-iwlwifi iwlwifi-firmware-ax210 wpad-openssl kmod-usb2-pci bluez-daemon"
+	sleep 10
+	# Configure wireless
+	qm_sendline "uci set wireless.radio0.disabled=0"
+	qm_sendline "uci set wireless.radio0.channel=6"
+	qm_sendline "uci set wireless.radio0.band='2g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
+	qm_sendline "uci set wireless.radio0.htmode=HE40" # HE20, HE40, HE80, HE160
+	qm_sendline "uci set wireless.radio0.country=TW"
+	qm_sendline "uci set wireless.default_radio0.network=lan"
+	qm_sendline "uci set wireless.default_radio0.mode=ap"
+	qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+	qm_sendline "uci set wireless.default_radio0.encryption=none"
+	qm_sendline "sed -i '/exit 0/i\\(sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local"
+	qm_sendline "uci commit wireless"
+	qm_sendline "wifi"
+elif lspci | grep -q "MT7922"; then
+    echo "偵測到 MediaTek MT7922 網卡，安裝驅動..."
+    qm_sendline "opkg install kmod-mt7921e kmod-mt7922-firmware wpad-openssl mt7922bt-firmware kmod-usb2-pci bluez-daemon"
+	sleep 10
+	# Configure wireless
+	qm_sendline "uci set wireless.radio0.disabled=0"
+	qm_sendline "uci set wireless.radio0.channel=149"
+	qm_sendline "uci set wireless.radio0.band='5g'" # 2g for 2.4 GHz, 5g for 5 GHz, 6g for 6 GHz and 60g for 60 GHz
+	qm_sendline "uci set wireless.radio0.htmode=HE80" # HE20, HE40, HE80, HE160
+	qm_sendline "uci set wireless.radio0.country=TW"
+	qm_sendline "uci set wireless.default_radio0.network=lan"
+	qm_sendline "uci set wireless.default_radio0.mode=ap"
+	qm_sendline "uci set wireless.default_radio0.ssid=OpenWrt"
+	qm_sendline "uci set wireless.default_radio0.encryption=none"
+	qm_sendline "sed -i '/exit 0/i\\(sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local"
+	qm_sendline "uci commit wireless"
+	qm_sendline "wifi"
+else
+    echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
+fi
+sleep 3
+echo "重啟虛擬機。"
+qm_sendline "reboot"
 
-    # press Ctrl+O to exit
-    send "\020"
-EOF
+# country TW: DFS-FCC
+# (2400 - 2483 @ 40), (N/A, 30), (N/A) 2.4GHz 1 6 11
+# (5150 - 5250 @ 80), (N/A, 23), (N/A), AUTO-BW 5GHz 36 40 44 48
+# (5250 - 5350 @ 80), (N/A, 23), (0 ms), DFS, AUTO-BW 5GHz
+# (5470 - 5730 @ 160), (N/A, 23), (0 ms), DFS 5GHz
+# (5725 - 5850 @ 80), (N/A, 30), (N/A) 5GHz 149 153
+# (5945 - 6425 @ 320), (N/A, 23), (N/A), NO-OUTDOOR 6Ghz 1 5 9 13 17 21
+# (57000 - 66000 @ 2160), (N/A, 40), (N/A)
+
+# https://openwrt.org/docs/guide-user/network/wifi/basic
+# https://wiki.odroid.com/accessory/connectivity/wifi/wlan_ap
+# https://gist.github.com/iffa/290b1b83b17f51355c63a97df7c1cc60
+# https://www.yumao.name/read/openwrt-share-network-via-bluetooth
+# https://elinux.org/images/1/15/ELC_NA_2019_PPT_CreatingBT_PAN_RNDIS_router_using_OpenWrt_20190814r1.pdf
