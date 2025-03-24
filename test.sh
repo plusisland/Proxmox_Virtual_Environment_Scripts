@@ -6,7 +6,8 @@ VMID=100 # 替換為您的虛擬機 ID
 # 網路設定
 LAN_IP="192.168.2.1"
 NET_MASK="255.255.255.0"
-
+ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
+https://github.com/jerrykuku/luci-theme-argon/releases/download/v2.3.2/luci-theme-argon_2.3.2-r20250207_all.ipk
 # Expect 腳本
 expect -c "
 spawn qm terminal $VMID
@@ -40,7 +41,39 @@ expect \"# \"
 send \"uci commit network\r\"
 expect \"# \"
 send \"service network restart\r\"
+expect \"eth0\"
+send \"\r\"
+send \"uci set dhcp.lan.interface=lan\r\"
 expect \"# \"
-send "\020"
+send \"uci set dhcp.lan=dhcp\r\"
+expect \"# \"
+send \"uci set dhcp.lan.start=100\r\"
+expect \"# \"
+send \"uci set dhcp.lan.limit=100\r\"
+expect \"# \"
+send \"uci set dhcp.lan.leasetime=12h\r\"
+expect \"# \"
+send \"uci commit dhcp\r\"
+expect \"# \"
+send \"service dnsmasq restart\r\"
+expect \"# \"
+send \"opkg update\r\"
+expect \"# \"
+send \"opkg install luci-i18n-base-zh-tw luci-compat luci-lib-ipkg\r\"
+expect \"# \"
+send \"wget -O luci-theme-argon.ipk $ipk_url\r\"
+expect \"# \"
+send \"opkg install luci-theme-argon.ipk\r\"
+expect \"# \"
+send \"rm -rf luci-theme-argon.ipk\r\"
+expect \"# \"
+send \"opkg install pciutils usbutils acpid qemu-ga\r\"
+expect \"# \"
+
+send \"opkg install kmod-mt7921e kmod-mt7922-firmware wpad-openssl mt7922bt-firmware kmod-usb2-pci bluez-daemon\r\"
+expect \"Bluetooth: \"
+send \"\r\"
+expect \"# \"
+
 expect eof
 "
