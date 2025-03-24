@@ -10,10 +10,9 @@ NET_MASK="255.255.255.0"
 # Expect 腳本
 expect -c "
 spawn qm terminal $VMID
-
-expect \"# \"
+expect \"starting serial terminal\"
 send \"\r\"
-
+expect \"# \"
 send \"uci delete network.@device\[0\]\r\"
 expect \"# \"
 send \"uci set network.wan=interface\r\"
@@ -42,8 +41,6 @@ send \"uci commit network\r\"
 expect \"# \"
 send \"service network restart\r\"
 expect \"# \"
-
-# 退出虛擬機終端
-send \"exit\r\"
+send "\020"
 expect eof
 "
