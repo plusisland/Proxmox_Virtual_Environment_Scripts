@@ -109,6 +109,9 @@ qm start $VM_ID
 
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
+
+ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
+
 sleep 20
 
 # Expect 腳本
@@ -164,7 +167,6 @@ send \"opkg update\r\"
 expect \"# \"
 send \"opkg install luci-i18n-base-zh-tw luci-compat luci-lib-ipkg\r\"
 expect \"# \"
-ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 send \"wget -O luci-theme-argon.ipk $ipk_url\r\"
 expect \"# \"
 send \"opkg install luci-theme-argon.ipk\r\"
