@@ -22,10 +22,10 @@ else
         if wget --show-progress -O "$tmp_deb_path" "$deb_url" && dpkg -i "$tmp_deb_path"; then
             rm "$tmp_deb_path"
             echo "$package_name 安裝完成！ | $package_name installation completed!"
-            echo "⚠️ 注意：安裝後請勿點擊「技術授權合約」頁面中的「檢查」按鈕，以避免恢復未授權狀態。 | ⚠️ Warning: After installation, do not click the 'Check' button on the 'Technical License Agreement' page to avoid restoring to an unauthorized state."
-            echo "🔹 虛假訂閱不提供企業存儲庫訪問權限。 | 🔹 Fake subscription does not provide access to enterprise repositories."
+            echo "注意：安裝後請勿點擊「技術授權合約」頁面中的「檢查」按鈕，以避免恢復未授權狀態。 | Warning: After installation, do not click the 'Check' button on the 'Technical License Agreement' page to avoid restoring to an unauthorized state."
+            echo "虛假訂閱不提供企業存儲庫訪問權限。 | Fake subscription does not provide access to enterprise repositories."
         else
-            echo "❌ 錯誤：安裝失敗，請檢查網路或日誌。 | ❌ Error: Installation failed, please check network or logs."
+            echo "錯誤：安裝失敗，請檢查網路或日誌。 | Error: Installation failed, please check network or logs."
             rm -f "$tmp_deb_path"
             exit 1
         fi
