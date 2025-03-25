@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 
 # 設定虛擬機 ID 和密碼
-VMID=100 # 替換為您的虛擬機 ID
+VM_ID=100 # 替換為您的虛擬機 ID
 
 # 網路設定
 LAN_IP="192.168.2.1"
 NET_MASK="255.255.255.0"
-ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
-https://github.com/jerrykuku/luci-theme-argon/releases/download/v2.3.2/luci-theme-argon_2.3.2-r20250207_all.ipk
+
 # Expect 腳本
 expect -c "
-spawn qm terminal $VMID
+spawn qm terminal $VM_ID
 expect \"starting serial terminal\"
 send \"\r\"
 expect \"# \"
@@ -61,6 +60,7 @@ send \"opkg update\r\"
 expect \"# \"
 send \"opkg install luci-i18n-base-zh-tw luci-compat luci-lib-ipkg\r\"
 expect \"# \"
+ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 send \"wget -O luci-theme-argon.ipk $ipk_url\r\"
 expect \"# \"
 send \"opkg install luci-theme-argon.ipk\r\"
@@ -70,10 +70,65 @@ expect \"# \"
 send \"opkg install pciutils usbutils acpid qemu-ga\r\"
 expect \"# \"
 
+if lspci | grep -q "AX210"; then
+send \"opkg install kmod-iwlwifi iwlwifi-firmware-ax210 wpad-openssl kmod-usb2-pci bluez-daemon\r\"
+expect \"Bluetooth: \"
+send \"\r\"
+expect \"# \"
+send \"uci set wireless.radio0.disabled=0\r\"
+expect \"# \"
+send \"uci set wireless.radio0.channel=6\r\"
+expect \"# \"
+send \"uci set wireless.radio0.band='2g'\r\"
+expect \"# \"
+send \"uci set wireless.radio0.htmode=HE40\r\"
+expect \"# \"
+send \"uci set wireless.radio0.country=TW\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.network=lan\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.mode=ap\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.ssid=OpenWrt\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.encryption=none\r\"
+expect \"# \"
+send \"sed -i '\/exit 0\/i\\(sleep 10; wifi; service bluetoothd restart) &' \/etc\/rc.local\r\"
+expect \"# \"
+send \"uci commit wireless\r\"
+expect \"# \"
+send \"wifi\r\"
+expect \"# \"
+
+elif lspci | grep -q "MT7922"; then
 send \"opkg install kmod-mt7921e kmod-mt7922-firmware wpad-openssl mt7922bt-firmware kmod-usb2-pci bluez-daemon\r\"
 expect \"Bluetooth: \"
 send \"\r\"
 expect \"# \"
-
+send \"uci set wireless.radio0.disabled=0\r\"
+expect \"# \"
+send \"uci set wireless.radio0.channel=149\r\"
+expect \"# \"
+send \"uci set wireless.radio0.band='5g'\r\"
+expect \"# \"
+send \"uci set wireless.radio0.htmode=HE80\r\"
+expect \"# \"
+send \"uci set wireless.radio0.country=TW\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.network=lan\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.mode=ap\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.ssid=OpenWrt\r\"
+expect \"# \"
+send \"uci set wireless.default_radio0.encryption=none\r\"
+expect \"# \"
+send \"sed -i '\/exit 0\/i\\(sleep 10; wifi; service bluetoothd restart) &' \/etc\/rc.local\r\"
+expect \"# \"
+send \"uci commit wireless\r\"
+expect \"# \"
+send \"wifi\r\"
+expect \"# \"
+send \"reboot\r\"
 expect eof
 "
