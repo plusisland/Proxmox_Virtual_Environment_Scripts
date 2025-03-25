@@ -42,3 +42,17 @@ https://github.com/morrownr/USB-WiFi/blob/main/home/PCIe_WiFi_Devices.md
 https://github.com/morrownr/USB-WiFi/blob/main/home/How_to_Install_Firmware_for_Mediatek_based_USB_WiFi_adapters.md
 
 https://github.com/lwfinger/rtw89
+
+apt install firmware-mt76 bluez
+systemctl restart NetworkManager
+systemctl enable bluetooth
+systemctl start bluetooth
+iwconfig
+bluetoothctl
+
+apt install firmware-iwlwifi bluez
+modprobe iwlwifi
+systemctl enable bluetooth
+systemctl start bluetooth
+iwconfig
+bluetoothctl
