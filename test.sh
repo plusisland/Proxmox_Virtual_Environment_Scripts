@@ -90,7 +90,7 @@ qm create $VM_ID \
   --memory $MEMORY \
   --net0 virtio,bridge=vmbr0 \
   --net1 virtio,bridge=vmbr1 \
-  --serial 0
+  --serial0 socket
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VM_ID openwrt-*.img $STORAGE_ID
