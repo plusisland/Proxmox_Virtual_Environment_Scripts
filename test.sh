@@ -174,15 +174,17 @@ expect \"# \"
 send \"opkg install pciutils usbutils acpid qemu-ga\r\"
 expect \"Configuring qemu-ga.\"
 
-send \"lspci | grep \"AX210\"\r"
+send \"lspci | grep AX210\r\"
 expect {
-  "AX210" { set intel 1 }
+  AX210 { set intel 1 }
+  timeout { set intel 0 }
   eof { set intel 0 }
 }
 
-send \"lspci | grep \"MT7922\"\r"
+send \"lspci | grep MT7922\r\"
 expect {
-  "MT7922" { set mediatek 1 }
+  MT7922 { set mediatek 1 }
+  timeout { set mediatek 0 }
   eof { set mediatek 0 }
 }
 
