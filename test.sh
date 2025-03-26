@@ -109,9 +109,7 @@ qm start $VM_ID
 
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
-
 ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
-
 sleep 20
 
 # Expect 腳本
@@ -174,18 +172,16 @@ expect \"# \"
 send \"rm -rf luci-theme-argon.ipk\r\"
 expect \"# \"
 send \"opkg install pciutils usbutils acpid qemu-ga\r\"
-expect \"# \"
-send "\x0F"
+expect \"Configuring qemu-ga.\"
 expect eof
 "
+
 if lspci | grep -q "AX210"; then
 expect -c "
-spawn qm terminal $VM_ID
-expect \"starting serial terminal\"
 send \"\r\"
 expect \"# \"
 send \"opkg install kmod-iwlwifi iwlwifi-firmware-ax210 wpad-openssl kmod-usb2-pci bluez-daemon\r\"
-expect \"Bluetooth: \"
+expect \"Configuring bluez-daemon.\"
 send \"\r\"
 expect \"# \"
 send \"uci set wireless.radio0.disabled=0\r\"
@@ -213,17 +209,14 @@ expect \"# \"
 send \"wifi\r\"
 expect \"# \"
 send \"reboot\r\"
-send "\x0F"
 expect eof
 "
 elif lspci | grep -q "MT7922"; then
 expect -c "
-spawn qm terminal $VM_ID
-expect \"starting serial terminal\"
 send \"\r\"
 expect \"# \"
 send \"opkg install kmod-mt7921e kmod-mt7922-firmware wpad-openssl mt7922bt-firmware kmod-usb2-pci bluez-daemon\r\"
-expect \"Bluetooth: \"
+expect \"Configuring bluez-daemon.\"
 send \"\r\"
 expect \"# \"
 send \"uci set wireless.radio0.disabled=0\r\"
@@ -251,7 +244,6 @@ expect \"# \"
 send \"wifi\r\"
 expect \"# \"
 send \"reboot\r\"
-send "\x0F"
 expect eof
 "
 else
