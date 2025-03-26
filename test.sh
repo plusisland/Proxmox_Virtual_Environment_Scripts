@@ -110,13 +110,6 @@ qm start $VM_ID
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
 ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
-if lspci | grep -q "AX210"; then
-  INTEL=1
-elif lspci | grep -q "MT7922"; then
-  MEDIATEK=1
-else
-    echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
-fi
 sleep 20
 
 # Expect 腳本
@@ -181,10 +174,19 @@ expect \"# \"
 send \"opkg install pciutils usbutils acpid qemu-ga\r\"
 expect \"Configuring qemu-ga.\"
 
-set intel_wifi $INTEL
-set mediatek_wifi $MEDIATEK
+send \"lspci | grep \"AX210\"\r"
+expect {
+  "AX210" { set intel 1 }
+  eof { set intel 0 }
+}
 
-if { \$intel_wifi == 1 } {
+send \"lspci | grep \"MT7922\"\r"
+expect {
+  "MT7922" { set mediatek 1 }
+  eof { set mediatek 0 }
+}
+
+if { \$intel == 1 } {
 send \"\r\"
 expect \"# \"
 send \"opkg install kmod-iwlwifi iwlwifi-firmware-ax210 wpad-openssl kmod-usb2-pci bluez-daemon\r\"
@@ -216,7 +218,7 @@ expect \"# \"
 send \"wifi\r\"
 expect \"# \"
 send \"reboot\r\"
-} elseif { \$mediatek_wifi == 1 } {
+} elseif { \$mediatek == 1 } {
 send \"\r\"
 expect \"# \"
 send \"opkg install kmod-mt7921e kmod-mt7922-firmware wpad-openssl mt7922bt-firmware kmod-usb2-pci bluez-daemon\r\"
