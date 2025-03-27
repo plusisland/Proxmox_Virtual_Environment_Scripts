@@ -81,9 +81,11 @@ losetup -d $loop_device
 # 創建虛擬機
 qm create $VM_ID \
   --name $VM_NAME \
+  --onboot 1 \
   --ostype l26 \
   --machine q35 \
   --bios ovmf \
+  --efidisk0 $STORAGE_ID:vm-$VM_ID-disk-0,efitype=4m,size=1M \
   --scsihw virtio-scsi-single \
   --cores $CORES \
   --cpu host \
@@ -95,8 +97,7 @@ qm create $VM_ID \
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VM_ID openwrt-*.img $STORAGE_ID
 qm set $VM_ID \
-  --onboot 1 \
-  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-0 \
+  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-1 \
   --boot order=scsi0 \
   --hostpci0 $PCI_ID,pcie=1 \
   --usb0 host=$USB_ID
