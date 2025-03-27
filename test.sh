@@ -85,7 +85,7 @@ qm create $VM_ID \
   --ostype l26 \
   --machine q35 \
   --bios ovmf \
-  --efidisk0 $STORAGE_ID:vm-$VM_ID-disk-0,efitype=4m,size=1M \
+  --efidisk0 $STORAGE_ID:0 \
   --scsihw virtio-scsi-single \
   --cores $CORES \
   --cpu host \
