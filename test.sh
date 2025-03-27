@@ -175,15 +175,12 @@ expect \"# \"
 send \"opkg install pciutils usbutils acpid qemu-ga\r\"
 expect \"Configuring qemu-ga.\"
 
-set intel 0
-set mediatek 0
-
 send \"lspci\r\"
 expect {
-  *AX210* { set intel 1 }
-  *MT7922* { set mediatek 1 }
-  timeout {}
-  eof {}
+  -re ".*AX210.*" { set intel 1 }
+  -re ".*MT7922.*" { set mediatek 1 }
+  timeout { set intel 0; set mediatek 0 }
+  eof { set intel 0; set mediatek 0 }
 }
 
 if { \$intel == 1 } {
