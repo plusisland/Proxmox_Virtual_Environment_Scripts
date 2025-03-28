@@ -122,13 +122,13 @@ if lspci | grep -q "AX210"; then
   echo "偵測到 Intel AX210 網卡，安裝驅動..."
   DRIVER_FIREWARE="kmod-iwlwifi iwlwifi-firmware-ax210"
   CHANNEL=6
-  BAND="2g"
+  BAND='2g'
   HTMODE=HE40
 elif lspci | grep -q "MT7922"; then
   echo "偵測到 MediaTek MT7922 網卡，安裝驅動..."
   DRIVER_FIREWARE="kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
   CHANNEL=149
-  BAND="5g"
+  BAND='5g'
   HTMODE=HE80
 else
   echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
@@ -206,7 +206,6 @@ send \"uci commit wireless\r\"
 send \"wifi\r\"
 expect \"# \"
 send \"reboot\r\"
-}
 expect eof
 "
 echo "重啟虛擬機。"
