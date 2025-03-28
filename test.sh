@@ -9,9 +9,9 @@ while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
     read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 done
 
-VM_NAME="OpenWrt"
-CORES=1
-MEMORY=256
+VM_NAME=OpenWrt
+VM_CORE=1
+VM_MEM=256
 STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
 # 檢查 lspci  是否已安裝，若未安裝則安裝
@@ -88,9 +88,9 @@ qm create $VM_ID \
   --bios ovmf \
   --efidisk0 $STORAGE_ID:0 \
   --scsihw virtio-scsi-single \
-  --cores $CORES \
+  --cores $VM_CORE \
   --cpu host \
-  --memory $MEMORY \
+  --memory $VM_MEM \
   --net0 virtio,bridge=vmbr0 \
   --net1 virtio,bridge=vmbr1 \
   --serial0 socket
@@ -121,15 +121,15 @@ IPK_URL2=$(curl -s https://api.github.com/repos/jerrykuku/luci-app-argon-config/
 if lspci | grep -q "AX210"; then
   echo "偵測到 Intel AX210 網卡，安裝驅動..."
   DRIVER_FIREWARE="kmod-iwlwifi iwlwifi-firmware-ax210"
-  CHANNEL="6"
-  BAND="\"2g\""
-  HTMODE="HE40"
+  CHANNEL=6
+  BAND="2g"
+  HTMODE=HE40
 elif lspci | grep -q "MT7922"; then
   echo "偵測到 MediaTek MT7922 網卡，安裝驅動..."
   DRIVER_FIREWARE="kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
-  CHANNEL="149"
-  BAND="\"5g\""
-  HTMODE="HE80"
+  CHANNEL=149
+  BAND="5g"
+  HTMODE=HE80
 else
   echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
   DRIVER_FIREWARE=""
