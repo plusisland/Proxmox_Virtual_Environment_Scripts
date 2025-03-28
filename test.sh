@@ -1,4 +1,3 @@
-精簡並優化以下程式碼
 #!/usr/bin/env bash
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 # https://github.com/kjames2001/OpenWRT-PVE-AP-MT7922
@@ -43,6 +42,7 @@ while [[ -z "$LAN_IP" ]]; do
     echo "IP 位址不能為空。"
     read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.2.1): " LAN_IP
 done
+
 # 詢問使用者路由器管理 Netmask
 read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
 while [[ -z "$NET_MASK" ]]; do
@@ -51,12 +51,12 @@ while [[ -z "$NET_MASK" ]]; do
 done
 
 # 取得 OpenWrt 的最新穩定版本
-response=$(curl -s https://openwrt.org)
-stableversion=$(echo "$response" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
+RESPONSE=$(curl -s https://openwrt.org)
+STABLEVERSION=$(echo "$RESPONSE" | sed -n 's/.*Current stable release - OpenWrt \([0-9.]\+\).*/\1/p' | head -n 1)
 # 下載 OpenWrt 映像的 URL
-URL="https://downloads.openwrt.org/releases/$stableversion/targets/x86/64/openwrt-$stableversion-x86-64-generic-ext4-combined-efi.img.gz"
+IMG_URL="https://downloads.openwrt.org/releases/$STABLEVERSION/targets/x86/64/openwrt-$STABLEVERSION-x86-64-generic-ext4-combined-efi.img.gz"
 # 下載 OpenWrt 映像檔
-wget -q --show-progress $URL
+wget -q --show-progress $IMG_URL
 
 # 解壓並調整磁碟映像大小
 gunzip openwrt-*.img.gz
@@ -69,15 +69,15 @@ if ! command -v parted &> /dev/null; then
 fi
 
 # 取得未使用磁碟裝置位置
-loop_device=$(losetup -f)
+LOOP_DEVICE=$(losetup -f)
 # 掛載映像
-losetup $loop_device openwrt-*.img
+losetup $LOOP_DEVICE openwrt-*.img
 # 擴展第二磁區
-parted -f -s "$loop_device" resizepart 2 100%
+parted -f -s "$LOOP_DEVICE" resizepart 2 100%
 # 擴展檔案系統
-resize2fs ${loop_device}p2
+resize2fs ${LOOP_DEVICE}p2
 # 解除掛載磁碟
-losetup -d $loop_device
+losetup -d $LOOP_DEVICE
 
 # 創建虛擬機
 qm create $VM_ID \
@@ -111,27 +111,31 @@ qm start $VM_ID
 
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
-ipk_url=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 sleep 20
+
+# OpenWrt Argon Theme
+IPK_URL1=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
+# OpenWrt Argon Theme Config Plugin
+IPK_URL2=$(curl -s https://api.github.com/repos/jerrykuku/luci-app-argon-config/releases | grep '"browser_download_url":' | grep 'luci-app-argon-config_.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 
 if lspci | grep -q "AX210"; then
   echo "偵測到 Intel AX210 網卡，安裝驅動..."
-  driver="kmod-iwlwifi"
-  fireware="iwlwifi-firmware-ax210"
-  channel="6"
-  band="2g"
-  htmode="HE40"
+  DRIVER_FIREWARE="kmod-iwlwifi iwlwifi-firmware-ax210"
+  CHANNEL="6"
+  BAND="2g"
+  HTMODE="HE40"
 elif lspci | grep -q "MT7922"; then
   echo "偵測到 MediaTek MT7922 網卡，安裝驅動..."
-  driver="kmod-mt7921e"
-  fireware="kmod-mt7922-firmware mt7922bt-firmware"
-  channel="149"
-  band="5g"
-  htmode="HE80"
+  DRIVER_FIREWARE="kmod-mt7921e kmod-mt7922-firmware mt7922bt-firmware"
+  CHANNEL="149"
+  BAND="5g"
+  HTMODE="HE80"
 else
   echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
-  driver=""
-  fireware=""
+  DRIVER_FIREWARE=""
+  CHANNEL=""
+  BAND=""
+  HTMODE=""
 fi
 
 expect -c "
@@ -159,7 +163,7 @@ send \"uci set dhcp.lan.interface=lan\r\"
 send \"uci set dhcp.lan=dhcp\r\"
 send \"uci set dhcp.lan.start=100\r\"
 send \"uci set dhcp.lan.limit=100\r\"
-send \"uci set dhcp.lan.leasetime=12h\r\"
+send \"uci set dhcp.lan.leasetime=24h\r\"
 send \"uci commit dhcp\r\"
 send \"service dnsmasq restart\r\"
 expect \"# \"
@@ -167,23 +171,28 @@ send \"opkg update\r\"
 expect \"# \"
 send \"opkg install luci-i18n-base-zh-tw luci-compat luci-lib-ipkg\r\"
 expect \"# \"
-send \"wget -O luci-theme-argon.ipk $ipk_url\r\"
+send \"wget -O luci-theme-argon.ipk $IPK_URL1\r\"
 expect \"# \"
 send \"opkg install luci-theme-argon.ipk\r\"
 expect \"# \"
 send \"rm -rf luci-theme-argon.ipk\r\"
+send \"wget -O luci-app-argon-config.ipk $IPK_URL2\r\"
+expect \"# \"
+send \"opkg install luci-app-argon-config.ipk\r\"
+expect \"# \"
+send \"rm -rf luci-app-argon-config.ipk\r\"
 send \"opkg install pciutils usbutils acpid qemu-ga\r\"
 expect \"Configuring qemu-ga.\"
 send \"\r\"
 expect \"# \"
-send \"opkg install $driver $fireware wpad-openssl kmod-usb2-pci bluez-daemon\r\"
+send \"opkg install $DRIVER_FIREWARE wpad-openssl kmod-usb2-pci bluez-daemon\r\"
 expect \"Bluetooth: MGMT ver\"
 send \"\r\"
 expect \"# \"
 send \"uci set wireless.radio0.disabled=0\r\"
-send \"uci set wireless.radio0.channel=$channel\r\"
-send \"uci set wireless.radio0.band=$band\r\"
-send \"uci set wireless.radio0.htmode=$htmode\r\"
+send \"uci set wireless.radio0.channel=$CHANNEL\r\"
+send \"uci set wireless.radio0.band=$BAND\r\"
+send \"uci set wireless.radio0.htmode=$HTMODE\r\"
 send \"uci set wireless.radio0.country=TW\r\"
 send \"uci set wireless.default_radio0.network=lan\r\"
 send \"uci set wireless.default_radio0.mode=ap\r\"
