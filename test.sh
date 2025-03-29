@@ -191,6 +191,7 @@ send \"\r\"
 send \"opkg install $DRIVER_FIREWARE wpad-openssl kmod-usb2-pci bluez-daemon\r\"
 expect \"Configuring bluez-daemon.\"
 sleep 10
+expect \"Bluetooth: MGMT ver\"
 send \"\r\"
 expect \"# \"
 send \"uci set wireless.radio0.disabled=0\r\"
@@ -206,6 +207,6 @@ send \"sed -i '/exit 0/i (sleep 10; wifi; service bluetoothd restart) &' /etc/rc
 send \"uci commit wireless\r\"
 send \"wifi\r\"
 expect \"# \"
-expect eof
+exit
 "
 echo "設定完成!"
