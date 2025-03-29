@@ -193,7 +193,7 @@ send \"ln -s /sbin/poweroff /sbin/shutdown\r\"
 expect \"# \"
 if {![string equal \"$DRIVER_FIREWARE\" \"\"]} {
 send \"opkg install $DRIVER_FIREWARE wpad-openssl kmod-usb2-pci bluez-daemon\r\"
-expect \"Configuring bluez-daemon.\"
+expect \"Bluetooth: MGMT ver\"
 sleep 5
 send \"\r\"
 expect \"# \"
