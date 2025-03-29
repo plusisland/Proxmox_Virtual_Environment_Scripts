@@ -218,6 +218,7 @@ send \"uci commit wireless\r\"
 expect \"# \"
 send \"wifi\r\"
 expect \"# \"
+send \"reboot\r\"
 exit
 "
-echo "設定完成!"
+echo "設定完成!重新啟動虛擬機"
