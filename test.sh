@@ -111,7 +111,7 @@ qm start $VM_ID
 
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
-sleep 20
+sleep 30
 
 # OpenWrt Argon Theme
 IPK_URL1=$(curl -s https://api.github.com/repos/jerrykuku/luci-theme-argon/releases | grep '"browser_download_url":' | grep 'luci-theme-argon.*_all\.ipk' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
@@ -191,22 +191,33 @@ send \"\r\"
 send \"opkg install $DRIVER_FIREWARE wpad-openssl kmod-usb2-pci bluez-daemon\r\"
 expect \"Configuring bluez-daemon.\"
 expect \"Bluetooth: MGMT ver\"
+sleep 5
 send \"\r\"
 expect \"# \"
 send \"uci set wireless.radio0.disabled=0\r\"
+expect \"# \"
 send \"uci set wireless.radio0.channel=$CHANNEL\r\"
+expect \"# \"
 send \"uci set wireless.radio0.band=$BAND\r\"
+expect \"# \"
 send \"uci set wireless.radio0.htmode=$HTMODE\r\"
+expect \"# \"
 send \"uci set wireless.radio0.country=TW\r\"
+expect \"# \"
 send \"uci set wireless.default_radio0.network=lan\r\"
+expect \"# \"
 send \"uci set wireless.default_radio0.mode=ap\r\"
+expect \"# \"
 send \"uci set wireless.default_radio0.ssid=OpenWrt\r\"
+expect \"# \"
 send \"uci set wireless.default_radio0.encryption=none\r\"
+expect \"# \"
 send \"sed -i '/exit 0/i (sleep 10; wifi; service bluetoothd restart) &' /etc/rc.local\r\"
+expect \"# \"
 send \"uci commit wireless\r\"
+expect \"# \"
 send \"wifi\r\"
 expect \"# \"
-sleep 10
 exit
 "
 echo "設定完成!"
