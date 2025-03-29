@@ -211,7 +211,7 @@ send \"uci commit wireless\r\"
 send \"wifi\r\"
 expect \"# \"
 }
-send \"/sbin/poweroff\r\"
+send \"poweroff\r\"
 exit
 "
 echo "設定完成!重新啟動虛擬機"
