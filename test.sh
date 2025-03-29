@@ -132,10 +132,10 @@ elif lspci | grep -q "MT7922"; then
   HTMODE=HE80
 else
   echo "未偵測到 Intel AX210 或 MediaTek MT7922 網卡，跳過驅動安裝。"
-  DRIVER_FIREWARE=""
-  CHANNEL=""
-  BAND=""
-  HTMODE=""
+  DRIVER_FIREWARE=
+  CHANNEL=
+  BAND=
+  HTMODE=
 fi
 
 expect -c "
