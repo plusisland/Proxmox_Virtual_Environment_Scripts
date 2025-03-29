@@ -220,6 +220,7 @@ if {![string equal \"$DRIVER_FIREWARE\" \"\"]} {
   send \"wifi\r\"
   expect \"# \"
 }
+sleep 3
 send \"poweroff\r\"
 exit
 "
