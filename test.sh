@@ -192,7 +192,6 @@ expect \"# \"
 if {![string equal \"$DRIVER_FIREWARE\" \"\"]} {
 send \"opkg install $DRIVER_FIREWARE wpad-openssl kmod-usb2-pci bluez-daemon\r\"
 expect \"Bluetooth: MGMT ver\"
-sleep 5
 send \"\r\"
 expect \"# \"
 send \"uci set wireless.radio0.disabled=0\r\"
