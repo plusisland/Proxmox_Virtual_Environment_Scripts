@@ -191,7 +191,7 @@ send \"\r\"
 expect \"# \"
 send \"ln -s /sbin/poweroff /sbin/shutdown\r\"
 expect \"# \"
-if { [string compare $$DRIVER_FIREWARE ""] != 0 } {
+if { [string compare $DRIVER_FIREWARE ""] != 0 } {
 send \"opkg install $DRIVER_FIREWARE wpad-openssl kmod-usb2-pci bluez-daemon\r\"
 expect \"Configuring bluez-daemon.\"
 sleep 5
