@@ -9,8 +9,8 @@ while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
 done
 
 VM_NAME=OPNsense
-VM_CORE=1
-VM_MEM=1024
+VM_CORE=2
+VM_MEM=2048
 STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
 # 檢查 lspci  是否已安裝，若未安裝則安裝
@@ -86,11 +86,45 @@ qm set $VM_ID \
   --usb0 host=$USB_ID
   
 # 清理下載的 OPNsense 映像文件
-rm -rf OPNsense-*.img
+#rm -rf OPNsense-*.img
 
 # 啟動虛擬機
 qm start $VM_ID
 
 # 等待虛擬機開機完成
 echo "等待虛擬機開機完成"
-sleep 30
+sleep 5
+
+expect -c "
+set timeout -1
+spawn qm terminal $VM_ID
+expect \"starting serial terminal on interface serial0 (press Ctrl+O to exit)\"
+send \"\r\"
+expect \"Press any key to start the manual interface assignment:\"
+send \"\r\"
+expect \"Do you want to configure LAGGs now? \[y/N\]: \"
+send \"N\r\"
+expect \"Do you want to configure VLANs now? \[y/N\]: \"
+send \"N\r\"
+expect \"Enter the WAN interface name or 'a' for auto-detection\"
+send \"vtnet0\r\"
+expect \"Enter the LAN interface name or 'a' for auto-detection\"
+send \"vtnet1\r\"
+expect \"Enter the Optional interface 1 name or 'a' for auto-detection\"
+send \"\r\"
+expect \"Do you want to proceed? \[y/N\]: \"
+send \"y\r\"
+expect \"login:\"
+send \"installer\r\"
+expect \"Password:\"
+send \"opnsense\r\"
+expect \"Cancel\"
+send \"\r\"
+expect \"Exit\"
+send \"\r\"
+expect \"Cancel\"
+send \"\r\"
+expect \"Back\"
+send \" \r\"
+exit
+"
