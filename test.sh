@@ -69,6 +69,7 @@ qm create $VM_ID \
   --bios ovmf \
   --efidisk0 $STORAGE_ID:0 \
   --scsihw virtio-scsi-single \
+  --scsi0 $STORAGE_ID:8
   --cores $VM_CORE \
   --cpu host \
   --memory $VM_MEM \
@@ -76,9 +77,11 @@ qm create $VM_ID \
   --net1 virtio,bridge=vmbr1 \
   --serial0 socket
 
+# 將磁碟映像匯入 Proxmox 儲存空間
+qm importdisk $VM_ID OPNsense-*.img $STORAGE_ID
 qm set $VM_ID \
-  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-1 \
-  --boot order=scsi0 \
+  --scsi0 $STORAGE_ID:vm-$VM_ID-disk-2 \
+  --boot order=scsi1 \
   --hostpci0 $PCI_ID,pcie=1 \
   --usb0 host=$USB_ID
   
