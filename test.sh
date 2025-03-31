@@ -10,7 +10,7 @@ done
 
 VM_NAME=OPNsense
 VM_CORE=2
-VM_MEM=2048
+VM_MEM=3072
 STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
 # 檢查 lspci  是否已安裝，若未安裝則安裝
@@ -65,9 +65,6 @@ qm create $VM_ID \
   --name $VM_NAME \
   --onboot 1 \
   --ostype other \
-  --machine q35 \
-  --bios ovmf \
-  --efidisk0 $STORAGE_ID:0 \
   --scsihw virtio-scsi-single \
   --scsi0 $STORAGE_ID:8 \
   --cores $VM_CORE \
@@ -80,7 +77,7 @@ qm create $VM_ID \
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VM_ID OPNsense-*.img $STORAGE_ID
 qm set $VM_ID \
-  --scsi1 $STORAGE_ID:vm-$VM_ID-disk-2 \
+  --scsi1 $STORAGE_ID:vm-$VM_ID-disk-1 \
   --boot order=scsi1 \
   --hostpci0 $PCI_ID,pcie=1 \
   --usb0 host=$USB_ID
