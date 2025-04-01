@@ -55,18 +55,19 @@ STABLEVERSION=$(echo "$RESPONSE" | sed -n 's/.*OPNsense-\([0-9.]\+\).*/\1/p' | h
 # 下載 OPNsense 映像的 URL
 IMG_URL="https://mirror.ntct.edu.tw/opnsense/releases/mirror/OPNsense-$STABLEVERSION-serial-amd64.img.bz2"
 # 下載 OPNsense 映像檔
-wget -q --show-progress $IMG_URL
+#wget -q --show-progress $IMG_URL
 
 # 解壓
-bzip2 -d OPNsense-*.img.bz2
+#bzip2 -d OPNsense-*.img.bz2
 
 # 創建虛擬機
 qm create $VM_ID \
   --name $VM_NAME \
   --onboot 1 \
   --ostype other \
+  --machine q35 \
   --scsihw virtio-scsi-single \
-  --scsi0 $STORAGE_ID:8 \
+  --scsi0 $STORAGE_ID:10 \
   --cores $VM_CORE \
   --cpu host \
   --memory $VM_MEM \
@@ -99,9 +100,9 @@ expect \"starting serial terminal on interface serial0 (press Ctrl+O to exit)\"
 send \"\r\"
 expect \"Press any key to start the manual interface assignment:\"
 send \"\r\"
-expect \"Do you want to configure LAGGs now? \[y/N\]: \"
+expect \"Do you want to configure LAGGs now?\"
 send \"N\r\"
-expect \"Do you want to configure VLANs now? \[y/N\]: \"
+expect \"Do you want to configure VLANs now?\"
 send \"N\r\"
 expect \"Enter the WAN interface name or 'a' for auto-detection\"
 send \"vtnet0\r\"
@@ -109,7 +110,7 @@ expect \"Enter the LAN interface name or 'a' for auto-detection\"
 send \"vtnet1\r\"
 expect \"Enter the Optional interface 1 name or 'a' for auto-detection\"
 send \"\r\"
-expect \"Do you want to proceed? \[y/N\]: \"
+expect \"Do you want to proceed?\"
 send \"y\r\"
 expect \"login:\"
 send \"installer\r\"
@@ -123,5 +124,11 @@ expect \"Cancel\"
 send \"\r\"
 expect \"Back\"
 send \" \r\"
+expect \"No\"
+send \"y\r\"
+expect \"OK\"
+send \"c\r\"
+expect \"OK\"
+send \"h\r\"
 exit
 "
