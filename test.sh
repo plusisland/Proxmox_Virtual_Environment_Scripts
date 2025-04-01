@@ -132,3 +132,7 @@ expect \"OK\"
 send \"h\r\"
 exit
 "
+# 分離安裝磁碟區
+qm set $VM_ID --delete scsi1
+# 刪除安裝磁碟區
+qm unlink $VM_ID --idlist unused0
