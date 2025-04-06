@@ -132,12 +132,18 @@ expect \"Power down system\"
 send \"h\r\"
 exit
 "
-sleep 30
+
+until qm status $VM_ID | grep -q "status: stopped"; do
+  echo "虛擬機尚未關機, 繼續等待..."
+  sleep 5
+done
 # 分離安裝磁碟區
 qm set $VM_ID --delete scsi1
 # 刪除安裝磁碟區
 qm unlink $VM_ID --idlist unused0
+# 調整開機順序
 qm set $VM_ID --boot order=scsi0
+# 啟動虛擬機
 qm start $VM_ID
 
 # 等待虛擬機開機完成
@@ -199,3 +205,8 @@ expect \"The system will halt and power off. Do you want to proceed?\"
 send \"y\r\"
 exit
 "
+until qm status $VM_ID | grep -q "status: stopped"; do
+  echo "虛擬機尚未關機, 繼續等待..."
+  sleep 5
+done
+echo "設定完成!"
