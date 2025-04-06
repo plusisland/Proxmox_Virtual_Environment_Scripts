@@ -36,10 +36,10 @@ if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
 fi
 
 # 詢問使用者路由器管理 IP
-read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
+read -p "請輸入 OPNsense 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
 while [[ -z "$LAN_IP" ]]; do
     echo "IP 位址不能為空。"
-    read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
+    read -p "請輸入 OPNsense 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
 done
 
 # 詢問使用者路由器管理 Netmask
