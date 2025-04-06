@@ -198,6 +198,10 @@ send \"sed -i '' \
 -e 's/en_US/zh_TW/g' \
 /conf/config.xml\r\"
 expect \"OPNsense\"
+send \"pkg install qemu-guest-agent\r\"
+expect \"Proceed with this action?\"
+send \"y\r\"
+expect \"OPNsense\"
 send \"exit\r\"
 expect \"Enter an option:\"
 send \"5\r\"
@@ -205,4 +209,9 @@ expect \"The system will halt and power off. Do you want to proceed?\"
 send \"y\r\"
 exit
 "
+qm set $VM_ID --agent 1
 echo "OPNsense 設定完成!關閉虛擬機"
+pkg install wifi-firmware-iwlwifi-kmod-ax210-20241017.1401000_1.pkg
+pkg install wifi-firmware-iwlwifi-kmod-ax210-20241017.1304000_1.pkg
+pkg install wifi-firmware-mt76-kmod
+https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
