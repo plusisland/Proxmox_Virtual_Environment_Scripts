@@ -211,7 +211,5 @@ exit
 "
 qm set $VM_ID --agent 1
 echo "OPNsense 設定完成!關閉虛擬機"
-pkg install wifi-firmware-iwlwifi-kmod-ax210-20241017.1401000_1.pkg
-pkg install wifi-firmware-iwlwifi-kmod-ax210-20241017.1304000_1.pkg
-pkg install wifi-firmware-mt76-kmod
 https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
+https://docs.opnsense.org/manual/how-tos/interface_wireless_internal.html
