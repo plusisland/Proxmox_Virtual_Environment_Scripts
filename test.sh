@@ -186,11 +186,13 @@ expect \"Enter an option:\"
 send \"8\r\"
 expect \"OPNsense\"
 send \"sed -i '' \
--e 's/Etc\/UTC/Asia\/Taipei/g' \
+-e 's/Etc\\\/UTC/Asia\\\/Taipei/g' \
 -e 's/0.opnsense.pool.ntp.org 1.opnsense.pool.ntp.org 2.opnsense.pool.ntp.org 3.opnsense.pool.ntp.org/0.tw.pool.ntp.org 1.tw.pool.ntp.org 2.tw.pool.ntp.org 3.tw.pool.ntp.org/g' \
--e 's/<mirror\/>/<mirror>https:\/\/mirror.ntct.edu.tw\/opnsense<\/mirror>/g' \
+-e 's/<mirror\\\/>/<mirror>https:\\\/\\\/mirror.ntct.edu.tw\\\/opnsense<\\\/mirror>/g' \
 -e 's/en_US/zh_TW/g' \
 /conf/config.xml\r\"
+expect \"OPNsense\"
+send \"exit\r\"
 expect \"Enter an option:\"
 send \"5\r\"
 expect \"The system will halt and power off. Do you want to proceed?\"
