@@ -132,7 +132,7 @@ expect \"Power down system\"
 send \"h\r\"
 exit
 "
-sleep 20
+sleep 30
 # 分離安裝磁碟區
 qm set $VM_ID --delete scsi1
 # 刪除安裝磁碟區
