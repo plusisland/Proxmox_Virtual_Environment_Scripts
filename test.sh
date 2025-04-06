@@ -43,10 +43,10 @@ while [[ -z "$LAN_IP" ]]; do
 done
 
 # 詢問使用者路由器管理 Netmask
-read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
+read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
 while [[ -z "$NET_MASK" ]]; do
     echo "Netmask 不能為空。"
-    read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
+    read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
 done
 
 # 取得 OPNsense 的最新穩定版本
@@ -137,3 +137,54 @@ sleep 20
 qm set $VM_ID --delete scsi1
 # 刪除安裝磁碟區
 qm unlink $VM_ID --idlist unused0
+qm set $VM_ID --boot order=scsi0
+qm start $VM_ID
+
+# 等待虛擬機開機完成
+echo "等待虛擬機開機完成"
+sleep 5
+expect -c "
+set timeout -1
+spawn qm terminal $VM_ID
+expect \"starting serial terminal on interface serial0 (press Ctrl+O to exit)\"
+send \"\r\"
+expect \"login:\"
+send \"root\r\"
+expect \"Password:\"
+send \"opnsense\r\"
+expect \"Enter an option:\"
+send \"2\r\"
+expect \"Enter the number of the interface to configure:\"
+send \"1\r\"
+expect \"Configure IPv4 address LAN interface via DHCP?\"
+send \"N\r\"
+expect \"Enter the new LAN IPv4 address. Press <ENTER> for none:\"
+send \"$LAN_IP\r\"
+expect \"Enter the new LAN IPv4 subnet bit count (1 to 32):\"
+send \"$NET_MASK\r\"
+expect \"For a LAN, press <ENTER> for none:\"
+send \"\r\"
+expect \"Configure IPv6 address LAN interface via WAN tracking?\"
+send \"n\r\"
+expect \"Configure IPv6 address LAN interface via DHCP6?\"
+send \"N\r\"
+expect \"Enter the new LAN IPv6 address. Press <ENTER> for none:\"
+send \"\r\"
+expect \"Do you want to enable the DHCP server on LAN?\"
+send \"y\r\"
+expect \"Enter the start address of the IPv4 client address range:\"
+send \"192.168.2.100\r\"
+expect \"Enter the end address of the IPv4 client address range:\"
+send \"192.168.2.200\r\"
+expect \"Do you want to change the web GUI protocol from HTTPS to HTTP?\"
+send \"N\r\"
+expect \"Do you want to generate a new self-signed web GUI certificate?\"
+send \"N\r\"
+expect \"Restore web GUI access defaults?\"
+send \"y\r\"
+expect \"Enter an option:\"
+send \"5\r\"
+expect \"The system will halt and power off. Do you want to proceed?\"
+send \"y\r\"
+exit
+"
