@@ -205,8 +205,4 @@ expect \"The system will halt and power off. Do you want to proceed?\"
 send \"y\r\"
 exit
 "
-until qm status $VM_ID | grep -q "status: stopped"; do
-  echo "虛擬機尚未關機, 繼續等待..."
-  sleep 5
-done
-echo "設定完成!"
+echo "OPNsense 設定完成!關閉虛擬機"
