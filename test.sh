@@ -195,15 +195,13 @@ send \"sed -i '' \
 -e 's/Etc\\\/UTC/Asia\\\/Taipei/g' \
 -e 's/0.opnsense.pool.ntp.org 1.opnsense.pool.ntp.org 2.opnsense.pool.ntp.org 3.opnsense.pool.ntp.org/0.tw.pool.ntp.org 1.tw.pool.ntp.org 2.tw.pool.ntp.org 3.tw.pool.ntp.org/g' \
 -e 's/<mirror\\\/>/<mirror>https:\\\/\\\/mirror.ntct.edu.tw\\\/opnsense<\\\/mirror>/g' \
--e 's/en_US/zh_TW/g' \
+-e 's/<language\\\/>/<language>zh_TW<\\\/language>/g' \
 /conf/config.xml\r\"
-expect \"OPNsense\"
+expect \"root@OPNsense:\"
 send \"pkg install -y qemu-guest-agent\r\"
-expect \"OPNsense\"
+expect \"root@OPNsense:\"
 send \"pkg install -y freeradius3\r\"
-expect \"OPNsense\"
-send \"opnsense-update\r\"
-expect \"OPNsense\"
+expect \"root@OPNsense:\"
 send \"exit\r\"
 expect \"Enter an option:\"
 send \"5\r\"
