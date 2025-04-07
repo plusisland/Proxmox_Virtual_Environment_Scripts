@@ -198,9 +198,11 @@ send \"sed -i '' \
 -e 's/en_US/zh_TW/g' \
 /conf/config.xml\r\"
 expect \"OPNsense\"
-send \"pkg install qemu-guest-agent\r\"
-expect \"Proceed with this action?\"
-send \"y\r\"
+send \"pkg install -y qemu-guest-agent\r\"
+expect \"OPNsense\"
+send \"pkg install -y freeradius3\r\"
+expect \"OPNsense\"
+send \"opnsense-update\r\"
 expect \"OPNsense\"
 send \"exit\r\"
 expect \"Enter an option:\"
@@ -213,3 +215,5 @@ qm set $VM_ID --agent 1
 echo "OPNsense 設定完成!關閉虛擬機"
 https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
 https://docs.opnsense.org/manual/how-tos/interface_wireless_internal.html
+vi /usr/local/etc/raddb/radiusd.conf
+service freeradius restart
