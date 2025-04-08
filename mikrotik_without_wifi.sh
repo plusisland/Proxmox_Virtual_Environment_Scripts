@@ -35,6 +35,13 @@ while [[ -z "$LAN_IP" ]]; do
     read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
 done
 
+# 詢問使用者路由器管理 Netmask
+read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
+while [[ -z "$NET_MASK" ]]; do
+    echo "Netmask 不能為空。"
+    read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
+done
+
 # 檢查 zip 是否已安裝，若未安裝則安裝
 if ! command -v zip &> /dev/null; then
     echo "zip 未安裝，正在安裝 zip..."
@@ -103,7 +110,7 @@ send \"/interface bridge add name=br-lan\r\"
 expect \"MikroTik\"
 send \"/interface bridge port add interface=ether2 bridge=br-lan\r\"
 expect \"MikroTik\"
-send \"/ip address add address=$LAN_IP/24 interface=br-lan\r\"
+send \"/ip address add address=$LAN_IP/$NET_MASK interface=br-lan\r\"
 expect \"MikroTik\"
 send \"/ip dhcp-server/ setup\r\"
 expect \"dhcp server interface: \"
