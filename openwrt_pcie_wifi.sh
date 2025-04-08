@@ -4,16 +4,16 @@
 
 # 檢查 vmbr1 是否存在，不存在則提示使用者
 if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
-    echo "vmbr1 網橋不存在。"
-    echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
-    exit 1
+  echo "vmbr1 網橋不存在。"
+  echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
+  exit 1
 fi
 
 # 詢問使用者虛擬機 ID
 read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
-    echo "虛擬機 ID 必須為數字且不能為空。"
-    read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
+  echo "虛擬機 ID 必須為數字且不能為空。"
+  read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 done
 
 VM_NAME=OpenWrt
@@ -23,14 +23,14 @@ STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
 # 檢查 lspci  是否已安裝，若未安裝則安裝
 if ! command -v lspci &> /dev/null; then
-    echo "lspci 未安裝，正在安裝 pciutils..."
-    apt install -y pciutils
+  echo "lspci 未安裝，正在安裝 pciutils..."
+  apt install -y pciutils
 fi
 
 # 檢查 lsusb 是否已安裝，若未安裝則安裝
 if ! command -v lsusb &> /dev/null; then
-    echo "lsusb 未安裝，正在安裝 usbutils..."
-    apt install -y usbutils
+  echo "lsusb 未安裝，正在安裝 usbutils..."
+  apt install -y usbutils
 fi
 
 PCI_ID=$(lspci | grep Network | awk '{print $1}')
@@ -39,15 +39,15 @@ USB_ID=$(lsusb | grep -E 'Wireless|Bluetooth' | awk '{print $6}')
 # 詢問使用者路由器管理 IP
 read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
 while [[ -z "$LAN_IP" ]]; do
-    echo "IP 位址不能為空。"
-    read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
+  echo "IP 位址不能為空。"
+  read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
 done
 
 # 詢問使用者路由器管理 Netmask
 read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
 while [[ -z "$NET_MASK" ]]; do
-    echo "Netmask 不能為空。"
-    read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
+  echo "Netmask 不能為空。"
+  read -p "請輸入 Netmask (例如: 255.255.255.0): " NET_MASK
 done
 
 # 取得 OpenWrt 的最新穩定版本
@@ -64,8 +64,8 @@ qemu-img resize -f raw openwrt-*.img 128M
 
 # 安裝 parted
 if ! command -v parted &> /dev/null; then
-    echo "parted 未安装，正在安装..."
-    apt install -y parted
+  echo "parted 未安装，正在安装..."
+  apt install -y parted
 fi
 
 # 取得未使用磁碟裝置位置
