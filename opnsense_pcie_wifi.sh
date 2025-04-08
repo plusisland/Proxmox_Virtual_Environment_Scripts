@@ -226,9 +226,11 @@ send \"sed -i '' \
 -e 's/<language\\\/>/<language>zh_TW<\\\/language>/g' \
 /conf/config.xml\r\"
 expect \"root@OPNsense:\"
-send \"pkg install -y qemu-guest-agent\r\"
+send \"pkg install -y os-qemu-guest-agent\r\"
 expect \"root@OPNsense:\"
 if {![string equal \"$DRIVER_FIREWARE\" \"\"]} {
+  send \"pkg install -y os-freeradius\r\"
+  expect \"root@OPNsense:\"
 }
 send \"exit\r\"
 expect \"Enter an option:\"
