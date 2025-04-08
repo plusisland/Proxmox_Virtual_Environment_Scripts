@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # https://docs.opnsense.org/manual/virtuals.html
+# https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
 
 # 詢問使用者虛擬機 ID
 read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
@@ -211,7 +212,3 @@ exit
 "
 qm set $VM_ID --agent 1
 echo "OPNsense 設定完成!關閉虛擬機"
-https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
-https://docs.opnsense.org/manual/how-tos/interface_wireless_internal.html
-vi /usr/local/etc/raddb/radiusd.conf
-service freeradius restart
