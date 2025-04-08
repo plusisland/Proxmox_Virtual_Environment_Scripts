@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # https://docs.opnsense.org/manual/virtuals.html
 # https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
+# https://kb.protectli.com/kb/how-to-configure-the-wifi-kit-in-opnsense/
 
 # 檢查 vmbr1 是否存在，不存在則提示使用者
 if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
@@ -18,7 +19,7 @@ done
 
 VM_NAME=OPNsense
 VM_CORE=2
-VM_MEM=3072
+VM_MEM=4096
 STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
 # 檢查 lspci  是否已安裝，若未安裝則安裝
@@ -228,8 +229,6 @@ expect \"root@OPNsense:\"
 send \"pkg install -y qemu-guest-agent\r\"
 expect \"root@OPNsense:\"
 if {![string equal \"$DRIVER_FIREWARE\" \"\"]} {
-  send \"pkg install -y freeradius3\r\"
-  expect \"root@OPNsense:\"
 }
 send \"exit\r\"
 expect \"Enter an option:\"
