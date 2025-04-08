@@ -99,7 +99,7 @@ qm set $VM_ID \
   --usb0 host=$USB_ID
   
 # 清理下載的 OPNsense 映像文件
-#rm -rf OPNsense-*.img
+rm -rf OPNsense-*.img
 
 # 啟動虛擬機
 qm start $VM_ID
