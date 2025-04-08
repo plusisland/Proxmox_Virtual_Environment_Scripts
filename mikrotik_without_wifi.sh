@@ -2,6 +2,13 @@
 # https://help.mikrotik.com/docs/spaces/ROS/pages/48660553/CHR+ProxMox+installation
 # https://help.mikrotik.com/docs/spaces/ROS/pages/328151/First+Time+Configuration#FirstTimeConfiguration-ConfiguringIPAccess
 
+# 檢查 vmbr1 是否存在，不存在則提示使用者
+if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
+    echo "vmbr1 網橋不存在。"
+    echo "請先在 Proxmox VE 中先建立 vmbr1 網橋。"
+    exit 1
+fi
+
 # 詢問使用者虛擬機 ID
 read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
@@ -9,30 +16,23 @@ while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
     read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 done
 
-# 詢問使用者設定管理密碼
-read -p "請輸入管理密碼 PW (VM_PW): " VM_PW
-while [[ -z "$VM_PW" ]]; do
-    echo "虛擬機 PW 不能為空。"
-    read -p "請輸入虛擬機 PW (VM_PW): " VM_PW
-done
-
 VM_NAME=MikroTik
 VM_CORE=1
 VM_MEM=256
 STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
-# 檢查 vmbr1 是否存在，不存在則提示使用者
-if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
-    echo "vmbr1 網橋不存在。"
-    echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
-    exit 1
-fi
+# 詢問使用者路由器管理密碼
+read -p "請輸入 MikroTik 管理密碼 PW (VM_PW): " VM_PW
+while [[ -z "$VM_PW" ]]; do
+    echo "路由器管理密碼不能為空。"
+    read -p "請輸入 MikroTik 管理密碼 PW (VM_PW): " VM_PW
+done
 
 # 詢問使用者路由器管理 IP
-read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
+read -p "請輸入 MikroTik 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
 while [[ -z "$LAN_IP" ]]; do
     echo "IP 位址不能為空。"
-    read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
+    read -p "請輸入 MikroTik 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
 done
 
 # 詢問使用者路由器管理 Netmask
@@ -85,9 +85,6 @@ rm -rf chr-*.img
 
 # 啟動虛擬機
 qm start $VM_ID
-
-# 等待虛擬機開機完成
-echo "等待虛擬機開機完成"
 sleep 5
 
 expect -c "
