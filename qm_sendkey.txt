@@ -3,82 +3,82 @@
 # https://gitlab.com/qemu-project/qemu/-/blob/master/pc-bios/keymaps/en-us
 # 這個函數會根據QEMU的鍵盤編碼將文字轉換為sendkey命令
 qm_sendline() {
-    local text="$1"     # 要轉換的文字
+  local text="$1"     # 要轉換的文字
 	echo -e "發送命令:$text"
-    # 創建一個鍵位對應表，去掉了小寫字母和數字
-    declare -A key_map=(
-        ['A']='shift-a'
-        ['B']='shift-b'
-        ['C']='shift-c'
-        ['D']='shift-d'
-        ['E']='shift-e'
-        ['F']='shift-f'
-        ['G']='shift-g'
-        ['H']='shift-h'
-        ['I']='shift-i'
-        ['J']='shift-j'
-        ['K']='shift-k'
-        ['L']='shift-l'
-        ['M']='shift-m'
-        ['N']='shift-n'
-        ['O']='shift-o'
-        ['P']='shift-p'
-        ['Q']='shift-q'
-        ['R']='shift-r'
-        ['S']='shift-s'
-        ['T']='shift-t'
-        ['U']='shift-u'
-        ['V']='shift-v'
-        ['W']='shift-w'
-        ['X']='shift-x'
-        ['Y']='shift-y'
-        ['Z']='shift-z'
-        [' ']='spc'
-        ['`']='grave_accent'
-        ['~']='shift-grave_accent'
-        ['!']='shift-1'
-        ['@']='shift-2'
-        ['#']='shift-3'
-        ['$']='shift-4'
-        ['%']='shift-5'
-        ['^']='shift-6'
-        ['&']='shift-7'
-        ['*']='shift-8'
-        ['(']='shift-9'
-        [')']='shift-0'
-        ['-']='minus'
-        ['_']='shift-minus'
-        ['=']='equal'
-        ['+']='shift-equal'
-        ['[']='bracket_left'
-        ['{']='shift-bracket_left'
-        [']']='bracket_right'
-        ['}']='shift-bracket_right'
-        ['\']='backslash'
-        ['|']='shift-backslash'
-        [';']='semicolon'
-        [':']='shift-semicolon'
-        ["'"]='apostrophe'
-        ['"']='shift-apostrophe'
-        [',']='comma'
-        ['<']='shift-comma'
-        ['.']='dot'
-        ['>']='shift-dot'
-        ["/"]='slash'
-        ['?']='shift-slash'
-    )
+  # 創建一個鍵位對應表，去掉了小寫字母和數字
+  declare -A key_map=(
+    ['A']='shift-a'
+    ['B']='shift-b'
+    ['C']='shift-c'
+    ['D']='shift-d'
+    ['E']='shift-e'
+    ['F']='shift-f'
+    ['G']='shift-g'
+    ['H']='shift-h'
+    ['I']='shift-i'
+    ['J']='shift-j'
+    ['K']='shift-k'
+    ['L']='shift-l'
+    ['M']='shift-m'
+    ['N']='shift-n'
+    ['O']='shift-o'
+    ['P']='shift-p'
+    ['Q']='shift-q'
+    ['R']='shift-r'
+    ['S']='shift-s'
+    ['T']='shift-t'
+    ['U']='shift-u'
+    ['V']='shift-v'
+    ['W']='shift-w'
+    ['X']='shift-x'
+    ['Y']='shift-y'
+    ['Z']='shift-z'
+    [' ']='spc'
+    ['`']='grave_accent'
+    ['~']='shift-grave_accent'
+    ['!']='shift-1'
+    ['@']='shift-2'
+    ['#']='shift-3'
+    ['$']='shift-4'
+    ['%']='shift-5'
+    ['^']='shift-6'
+    ['&']='shift-7'
+    ['*']='shift-8'
+    ['(']='shift-9'
+    [')']='shift-0'
+    ['-']='minus'
+    ['_']='shift-minus'
+    ['=']='equal'
+    ['+']='shift-equal'
+    ['[']='bracket_left'
+    ['{']='shift-bracket_left'
+    [']']='bracket_right'
+    ['}']='shift-bracket_right'
+    ['\']='backslash'
+    ['|']='shift-backslash'
+    [';']='semicolon'
+    [':']='shift-semicolon'
+    ["'"]='apostrophe'
+    ['"']='shift-apostrophe'
+    [',']='comma'
+    ['<']='shift-comma'
+    ['.']='dot'
+    ['>']='shift-dot'
+    ["/"]='slash'
+    ['?']='shift-slash'
+  )
 
-    # 遍歷輸入文字，並發送對應的sendkey命令
-    for (( i=0; i<${#text}; i++ )); do
-        char=${text:$i:1}
-        if [[ -v key_map[$char] ]]; then
-            key=${key_map[$char]}
-            qm sendkey $VM_ID $key
-        else
-            qm sendkey $VM_ID $char
-        fi
-    done
-    qm sendkey $VM_ID ret
+  # 遍歷輸入文字，並發送對應的sendkey命令
+  for (( i=0; i<${#text}; i++ )); do
+    char=${text:$i:1}
+    if [[ -v key_map[$char] ]]; then
+      key=${key_map[$char]}
+      qm sendkey $VM_ID $key
+    else
+      qm sendkey $VM_ID $char
+    fi
+  done
+  qm sendkey $VM_ID ret
 }
 
 # 輸出`需要補\`
