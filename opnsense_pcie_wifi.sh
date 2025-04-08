@@ -92,11 +92,18 @@ qm create $VM_ID \
 
 # 將磁碟映像匯入 Proxmox 儲存空間
 qm importdisk $VM_ID OPNsense-*.img $STORAGE_ID
-qm set $VM_ID \
-  --scsi1 $STORAGE_ID:vm-$VM_ID-disk-1 \
-  --boot order=scsi1 \
-  --hostpci0 $PCI_ID,pcie=1 \
-  --usb0 host=$USB_ID
+
+if [ -z "$PCI_ID" ]; then
+  qm set $VM_ID \
+    --scsi1 $STORAGE_ID:vm-$VM_ID-disk-1 \
+    --boot order=scsi1
+else
+  qm set $VM_ID \
+    --scsi1 $STORAGE_ID:vm-$VM_ID-disk-1 \
+    --boot order=scsi1 \
+    --hostpci0 $PCI_ID,pcie=1 \
+    --usb0 host=$USB_ID
+fi
   
 # 清理下載的 OPNsense 映像文件
 rm -rf OPNsense-*.img
