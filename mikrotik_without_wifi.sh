@@ -4,16 +4,16 @@
 
 # 檢查 vmbr1 是否存在，不存在則提示使用者
 if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
-    echo "vmbr1 網橋不存在。"
-    echo "請先在 Proxmox VE 中先建立 vmbr1 網橋。"
-    exit 1
+  echo "vmbr1 網橋不存在。"
+  echo "請先在 Proxmox VE 中先建立 vmbr1 網橋。"
+  exit 1
 fi
 
 # 詢問使用者虛擬機 ID
 read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
-    echo "虛擬機 ID 必須為數字且不能為空。"
-    read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
+  echo "虛擬機 ID 必須為數字且不能為空。"
+  read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 done
 
 VM_NAME=MikroTik
@@ -24,28 +24,28 @@ STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 # 詢問使用者路由器管理密碼
 read -p "請輸入 MikroTik 管理密碼 PW (VM_PW): " VM_PW
 while [[ -z "$VM_PW" ]]; do
-    echo "路由器管理密碼不能為空。"
-    read -p "請輸入 MikroTik 管理密碼 PW (VM_PW): " VM_PW
+  echo "路由器管理密碼不能為空。"
+  read -p "請輸入 MikroTik 管理密碼 PW (VM_PW): " VM_PW
 done
 
 # 詢問使用者路由器管理 IP
 read -p "請輸入 MikroTik 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
 while [[ -z "$LAN_IP" ]]; do
-    echo "IP 位址不能為空。"
-    read -p "請輸入 MikroTik 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
+  echo "IP 位址不能為空。"
+  read -p "請輸入 MikroTik 路由器管理 IP (例如: 192.168.88.1): " LAN_IP
 done
 
 # 詢問使用者路由器管理 Netmask
 read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
 while [[ -z "$NET_MASK" ]]; do
-    echo "Netmask 不能為空。"
-    read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
+  echo "Netmask 不能為空。"
+  read -p "請輸入 Netmask (例如: 24、16、8): " NET_MASK
 done
 
 # 檢查 zip 是否已安裝，若未安裝則安裝
 if ! command -v zip &> /dev/null; then
-    echo "zip 未安裝，正在安裝 zip..."
-    apt install -y zip
+  echo "zip 未安裝，正在安裝 zip..."
+  apt install -y zip
 fi
 
 # 取得 MikroTik 的最新穩定版本
