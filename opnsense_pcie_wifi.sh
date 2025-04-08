@@ -170,11 +170,11 @@ qm start $VM_ID
 sleep 5
 
 if lspci | grep -q "AX210"; then
-  echo "偵測到 Intel AX210 網卡，安裝驅動..."
-  DRIVER_FIREWARE="iwlwifi"
+  echo "偵測到 Intel AX210 網卡，安裝 FreeRADIUS..."
+  PLUGIN="os-freeradius"
 else
-  echo "未偵測到 Intel AX210 網卡，跳過驅動安裝。"
-  DRIVER_FIREWARE=
+  echo "未偵測到 Intel AX210 網卡，跳過 FreeRADIUS 安裝。"
+  PLUGIN=
 fi
 
 expect -c "
@@ -228,8 +228,8 @@ send \"sed -i '' \
 expect \"root@OPNsense:\"
 send \"pkg install -y os-qemu-guest-agent\r\"
 expect \"root@OPNsense:\"
-if {![string equal \"$DRIVER_FIREWARE\" \"\"]} {
-  send \"pkg install -y os-freeradius\r\"
+if {![string equal \"$PLUGIN\" \"\"]} {
+  send \"pkg install -y $PLUGIN\r\"
   expect \"root@OPNsense:\"
 }
 send \"exit\r\"
