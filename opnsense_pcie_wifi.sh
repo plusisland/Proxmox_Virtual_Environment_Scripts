@@ -70,10 +70,10 @@ STABLEVERSION=$(echo "$RESPONSE" | sed -n 's/.*OPNsense-\([0-9.]\+\).*/\1/p' | h
 # 下載 OPNsense 映像的 URL
 IMG_URL="https://mirror.ntct.edu.tw/opnsense/releases/mirror/OPNsense-$STABLEVERSION-serial-amd64.img.bz2"
 # 下載 OPNsense 映像檔
-#wget -q --show-progress $IMG_URL
+wget -q --show-progress $IMG_URL
 
 # 解壓
-#bzip2 -d OPNsense-*.img.bz2
+bzip2 -d OPNsense-*.img.bz2
 
 # 創建虛擬機
 qm create $VM_ID \
