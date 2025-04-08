@@ -2,6 +2,13 @@
 # https://openwrt.org/docs/guide-user/virtualization/qemu#openwrt_in_qemu_x86-64
 # https://github.com/kjames2001/OpenWRT-PVE-AP-MT7922
 
+# 檢查 vmbr1 是否存在，不存在則提示使用者
+if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
+    echo "vmbr1 網橋不存在。"
+    echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
+    exit 1
+fi
+
 # 詢問使用者虛擬機 ID
 read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
 while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
@@ -28,13 +35,6 @@ fi
 
 PCI_ID=$(lspci | grep Network | awk '{print $1}')
 USB_ID=$(lsusb | grep -E 'Wireless|Bluetooth' | awk '{print $6}')
-
-# 檢查 vmbr1 是否存在，不存在則提示使用者
-if ! grep -q "iface vmbr1 inet" /etc/network/interfaces; then
-    echo "vmbr1 網橋不存在。"
-    echo "請先在 Proxmox VE 中至少建立 vmbr1 網橋。"
-    exit 1
-fi
 
 # 詢問使用者路由器管理 IP
 read -p "請輸入 OpenWrt 路由器管理 IP (例如: 192.168.1.1): " LAN_IP
@@ -108,9 +108,6 @@ rm -rf openwrt-*.img
 
 # 啟動虛擬機
 qm start $VM_ID
-
-# 等待虛擬機開機完成
-echo "等待虛擬機開機完成"
 sleep 30
 
 # OpenWrt Argon Theme
