@@ -36,13 +36,13 @@ PCI_ID=$(lspci | grep Network | awk '{print $1}')
 USB_ID=$(lsusb | grep -E 'Wireless|Bluetooth' | awk '{print $6}')
 
 # 下載 Home Assistant 映像的 URL
-IMG_URL=$(curl -s https://api.github.com/repos//home-assistant/operating-system/releases/latest | grep '"browser_download_url":' | grep 'haos_ova-.*\.qcow2\.xz' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
+IMG_URL=$(curl -s https://api.github.com/repos/home-assistant/operating-system/releases/latest | grep '"browser_download_url":' | grep 'haos_ova-.*\.qcow2\.xz' | head -n 1 | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p')
 
 # 下載 Home Assistant 映像檔
 wget -q --show-progress $IMG_URL
 
 # 解壓並調整磁碟映像大小
-xz -d haos_ova-*.qcow2.gz
+xz -d haos_ova-*.qcow2.xz
 
 # 創建虛擬機
 qm create $VM_ID \
@@ -74,6 +74,9 @@ else
     --hostpci0 $PCI_ID,pcie=1 \
     --usb0 host=$USB_ID
 fi
-  
+
+# 清理下載的 Home Assistant 映像文件
+rm -rf haos_ova-*.qcow2
+
 # 啟動虛擬機
 qm start $VM_ID
