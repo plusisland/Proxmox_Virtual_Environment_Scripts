@@ -9,8 +9,8 @@ while [[ -z "$VM_ID" || ! "$VM_ID" =~ ^[0-9]+$ ]]; do
 done
 
 VM_NAME=Nextcloud
-VM_CORE=2
-VM_MEM=2048
+VM_CORE=4
+VM_MEM=4096
 STORAGE_ID=$(pvesm status --content images | awk 'NR==2{print $1}')
 
 # 下載 Nextcloud 映像檔
@@ -35,14 +35,14 @@ qm create $VM_ID \
   --serial0 socket
 
 # 將磁碟映像匯入 Proxmox 儲存空間
-qm importdisk $VM_ID Nextcloud-AIO.vmdk $STORAGE_ID
+qm importdisk $VM_ID Nextcloud-AIO-disk001.vmdk $STORAGE_ID
 
 qm set $VM_ID \
   --scsi0 $STORAGE_ID:vm-$VM_ID-disk-1 \
   --boot order=scsi0
 
 # 清理下載的 Nextcloud 映像文件
-rm -rf Nextcloud-AIO-*
+rm -rf Nextcloud-AIO*
 
 # 啟動虛擬機
 qm start $VM_ID
