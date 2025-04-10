@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # https://www.home-assistant.io/installation/alternative
+# https://community.home-assistant.io/t/how-to-install-custom-wifi-drivers/689637
 
 # 詢問使用者虛擬機 ID
 read -p "請輸入虛擬機 ID (VM_ID): " VM_ID
