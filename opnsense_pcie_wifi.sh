@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # https://docs.opnsense.org/manual/virtuals.html
 # https://homenetworkguy.com/how-to/set-up-a-fully-functioning-home-network-using-opnsense/
+# https://github.com/CallMeR/opnsense_configuration_notes
 # https://kb.protectli.com/kb/how-to-configure-the-wifi-kit-in-opnsense/
 
 # 檢查 vmbr1 是否存在，不存在則提示使用者
